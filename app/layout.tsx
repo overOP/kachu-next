@@ -1,7 +1,11 @@
-
+import type { Metadata } from "next";
 import "./globals.css";
 
-
+export const metadata: Metadata = {
+  title: "Kart — Wholesale Marketplace",
+  description:
+    "Your one-stop wholesale marketplace connecting factories to buyers worldwide.",
+};
 
 export default function RootLayout({
   children,
