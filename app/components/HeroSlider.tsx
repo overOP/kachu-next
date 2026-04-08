@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Image from 'next/image'; 
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { slides } from '../utlis/utlity';
-import Image from 'next/image';
+
 export default function HeroSlider() {
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
@@ -12,18 +13,9 @@ export default function HeroSlider() {
   const containerRef = useRef<HTMLDivElement>(null);
   const captionRef = useRef<HTMLDivElement>(null);
 
-  // Initialize GSAP context for automatic cleanup
   const { contextSafe } = useGSAP({ scope: containerRef });
 
-  /**
-   * Entrance Animation
-   * Triggered when 'current' state changes.
-   */
-  /**
-   * Entrance Animation
-   */
   const animateIn = useCallback(() => {
-    // We call the context-safe version inside the callback
     contextSafe(() => {
       const els = captionRef.current?.querySelectorAll('[data-anim]');
       if (!els) return;
@@ -39,12 +31,9 @@ export default function HeroSlider() {
           clearProps: 'all' 
         }
       );
-    })(); // Execute the safe function immediately
+    })();
   }, [contextSafe]);
 
-  /**
-   * Main Transition Logic
-   */
   const goTo = useCallback((idx: number) => {
     if (animating || idx === current) return;
 
@@ -66,19 +55,16 @@ export default function HeroSlider() {
         stagger: 0.05,
         ease: 'power2.in'
       });
-    })(); // Execute the safe function immediately
+    })();
   }, [animating, current, contextSafe]);
 
-  // Standard directional controls
   const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo]);
   const prev = () => goTo((current - 1 + slides.length) % slides.length);
 
-  // Trigger entrance animation on index change
   useEffect(() => {
     animateIn();
   }, [current, animateIn]);
 
-  // Auto-advance logic
   useEffect(() => {
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
@@ -94,30 +80,30 @@ export default function HeroSlider() {
     >
       {/* Background Images Layer */}
       {slides.map((s, i) => (
-  <div
-    key={i}
-    className="absolute inset-0 will-change-opacity overflow-hidden"
-    style={{ 
-      opacity: i === current ? 1 : 0, 
-      zIndex: i === current ? 1 : 0,
-      transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
-    }}
-  >
-    <Image
-      src={s.img}
-      alt={s.title}
-      fill
-      priority={i === 0}
-      sizes="100vw"
-      className="object-cover transition-transform duration-[8000ms] ease-linear"
-      style={{ 
-        filter: 'brightness(0.7)',
-        transform: i === current ? 'scale(1.05)' : 'scale(1.15)',
-      }}
-    />
-  </div>
-))}
-      {/* Aesthetic Overlay */}
+        <div
+          key={i}
+          className="absolute inset-0 will-change-opacity overflow-hidden"
+          style={{ 
+            opacity: i === current ? 1 : 0, 
+            zIndex: i === current ? 1 : 0,
+            transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+          <Image
+            src={s.img}
+            alt={s.title}
+            fill
+            priority={i === 0}
+            sizes="100vw"
+            className="object-cover transition-transform duration-[8000ms] ease-linear"
+            style={{ 
+              filter: 'brightness(0.7)',
+              transform: i === current ? 'scale(1.05)' : 'scale(1.15)',
+            }}
+          />
+        </div>
+      ))}
+
       <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
 
       {/* Content Layer */}
@@ -125,7 +111,6 @@ export default function HeroSlider() {
         <span 
           data-anim 
           className="inline-block text-[10px] font-bold tracking-[0.2em] uppercase mb-5 px-4 py-1.5 rounded-full bg-emerald-600 text-white shadow-xl"
-          style={{ fontFamily: 'DM Sans, sans-serif' }}
         >
           {slide.tag}
         </span>
@@ -145,20 +130,17 @@ export default function HeroSlider() {
         <button 
           data-anim 
           className="bg-emerald-600 text-white px-10 py-4 rounded-full font-bold transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95"
-          style={{ fontFamily: 'Syne, sans-serif' }}
         >
           {slide.cta} 
         </button>
       </div>
 
-      {/* Controls: Dots and Arrows */}
+      {/* Controls */}
       <div className="absolute bottom-10 right-10 z-30 flex items-center gap-8">
-        {/* Pagination Dots */}
         <div className="flex gap-3">
           {slides.map((_, i) => (
             <button
               key={i}
-              title={`Go to slide ${i + 1}`}
               onClick={() => goTo(i)}
               className="h-1.5 transition-all duration-500 rounded-full"
               style={{ 
@@ -169,14 +151,12 @@ export default function HeroSlider() {
           ))}
         </div>
         
-        {/* Navigation Arrows */}
         <div className="flex gap-2">
           <NavBtn icon="‹" onClick={prev} label="Previous slide" />
           <NavBtn icon="›" onClick={next} label="Next slide" />
         </div>
       </div>
 
-      {/* Slide Counter */}
       <div className="absolute top-8 right-10 z-30 text-white/40 text-xs font-mono tracking-widest">
         {String(current + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
       </div>
@@ -184,9 +164,6 @@ export default function HeroSlider() {
   );
 }
 
-/**
- * Reusable Navigation Button
- */
 function NavBtn({ icon, onClick, label }: { icon: string; onClick: () => void; label: string }) {
   return (
     <button
