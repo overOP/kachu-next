@@ -140,6 +140,7 @@ export default function HeroSlider() {
         <div className="flex gap-3">
           {slides.map((_, i) => (
             <button
+            title='some'
               key={i}
               onClick={() => goTo(i)}
               className="h-1.5 transition-all duration-500 rounded-full"

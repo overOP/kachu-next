@@ -1,169 +1,123 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import gsap from "gsap";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Register plugin safely for SSR environments
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(MotionPathPlugin);
+  gsap.registerPlugin(ScrollTrigger);
 }
 
 interface Brand {
   name: string;
   bg: string;
-  size: number;
   label: string;
   description: string;
   imageSrc: string;
 }
 
 const brands: Brand[] = [
-  { name: "pg", bg: "#1B3A8C", size: 110, label: "P&G", description: "Procter & Gamble products", imageSrc: "/shop/p&g.png" },
-  { name: "loreal", bg: "#f5d4dd", size: 110, label: "L'Oréal", description: "L'Oréal Paris cosmetics", imageSrc: "/shop/L’Oreal Paris.png" },
-  { name: "coco", bg: "#E8001C", size: 110, label: "Coca-Cola", description: "Coca-Cola beverages", imageSrc: "/shop/coco.png" },
-  { name: "kraft", bg: "white", size: 110, label: "Kraft", description: "Kraft dairy & food products", imageSrc: "/shop/kraft.png" },
-  { name: "nestle", bg: "#D0021B", size: 110, label: "Nestlé", description: "Nestlé food and drinks", imageSrc: "/shop/nestle.webp" },
-  { name: "pepsi", bg: "white", size: 110, label: "Pepsi", description: "Pepsi beverages", imageSrc: "/shop/pepsi.png" },
+  { name: "pg", bg: "#1B3A8C", label: "P&G", description: "Procter & Gamble industrial manufacturing", imageSrc: "/shop/p&g.png" },
+  { name: "loreal", bg: "#f5d4dd", label: "L'Oréal", description: "L'Oréal Paris beauty production", imageSrc: "/shop/L’Oreal Paris.png" },
+  { name: "coco", bg: "#E8001C", label: "Coca-Cola", description: "Coca-Cola bottling plant", imageSrc: "/shop/coco.png" },
+  { name: "kraft", bg: "#FFFFFF", label: "Kraft", description: "Kraft dairy & food processing", imageSrc: "/shop/kraft.png" },
+  { name: "nestle", bg: "#D0021B", label: "Nestlé", description: "Nestlé food and beverage systems", imageSrc: "/shop/nestle.webp" },
+  { name: "pepsi", bg: "#FFFFFF", label: "Pepsi", description: "Pepsi global distribution hub", imageSrc: "/shop/pepsi.png" },
 ];
-
-const W = 2000;
-const H = 400;
-const TRACK_GAP = 0.17;
 
 const ShopBy: React.FC = () => {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState<number | null>(null);
-  
-  // Store timeline references to control them individually without pausing the whole app
-  const timelines = useRef<gsap.core.Tween[]>([]);
 
-  // 1. Build Curve Logic
-  const buildCurve = (): string => {
-    const padding = 120;
-    const usableWidth = W - padding * 2;
-    const xs = brands.map((_, i) => padding + i * (usableWidth / (brands.length - 1)));
-    const ys = brands.map((_, i) => (i % 2 === 0 ? 120 : 260));
-    let d = `M${xs[0]},${ys[0]}`;
-    for (let i = 0; i < xs.length - 1; i++) {
-      const cx = (xs[i] + xs[i + 1]) / 2;
-      d += ` C ${cx},${ys[i]} ${cx},${ys[i + 1]} ${xs[i + 1]},${ys[i + 1]}`;
-    }
-    return d;
-  };
-
-  // 2. Optimized Animation Logic
   useGSAP(() => {
-    const centerIndex = Math.floor(brands.length / 2);
+    const cards = gsap.utils.toArray<HTMLElement>(".brand-card");
 
-    brands.forEach((_, i) => {
-      const startPos = 0.5 + (i - centerIndex) * TRACK_GAP;
-      
-      const animateNode = (index: number, currentStart: number) => {
-        const endPos = currentStart + TRACK_GAP;
+    // Initial entrance animation
+    gsap.from(cards, {
+      y: 100,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.15,
+      ease: "power4.out",
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 80%",
+      },
+    });
 
-        const tween = gsap.to(`.brand-node-${index}`, {
-          duration: 8,
-          ease: "none",
-          motionPath: {
-            path: "#factoryPath",
-            align: "#factoryPath",
-            alignOrigin: [0.5, 0.5],
-            start: currentStart,
-            end: endPos > 1 ? 1 : endPos,
-          },
-          onUpdate: function () {
-            const progress = this.progress();
-            const currentPathPos = currentStart + progress * (endPos - currentStart);
-            const target = this.targets()[0];
+    // Hover effect setup (Individual card lift)
+    cards.forEach((card) => {
+      const overlay = card.querySelector(".green-overlay");
+      const image = card.querySelector(".brand-image");
 
-            // Calculate proximity to center (0.5 on the path)
-            const distFromCenter = Math.abs(currentPathPos - 0.5);
-            const isMid = distFromCenter < 0.07;
+      const tl = gsap.timeline({ paused: true });
+      tl.to(card, { y: -10, scale: 1.02, duration: 0.3, ease: "power2.out" })
+        .to(overlay, { opacity: 1, duration: 0.2 }, 0)
+        .to(image, { scale: 1.1, duration: 0.4 }, 0);
 
-            gsap.to(target, {
-              scale: isMid ? 1.6 : 0.85,
-              zIndex: isMid ? 50 : 10,
-              borderRadius: isMid ? "12px" : "50%",
-              duration: 0.4,
-              overwrite: "auto",
-            });
-          },
-          onComplete: () => animateNode(index, endPos >= 1 ? 0 : endPos),
-        });
-
-        timelines.current[index] = tween;
-      };
-
-      animateNode(i, startPos < 0 ? 1 + startPos : startPos);
+      card.addEventListener("mouseenter", () => tl.play());
+      card.addEventListener("mouseleave", () => tl.reverse());
     });
   }, { scope: containerRef });
 
-  // 3. Interaction Handlers
-  const handleTogglePause = (isPaused: boolean) => {
-    timelines.current.forEach(tl => isPaused ? tl.pause() : tl.play());
-  };
-
   return (
-    <section ref={containerRef} className="w-full bg-slate-50 py-16 overflow-hidden flex flex-col items-center">
-      <h2 className="text-4xl font-extrabold text-emerald-900 mb-12 tracking-tight">
-        Shop by Factories
-      </h2>
+    <section 
+      ref={containerRef} 
+      className="w-full min-h-screen bg-emerald-50/30 py-24 px-6 md:px-12 flex flex-col items-center overflow-hidden"
+    >
+      {/* Header Section */}
+      <div className="max-w-4xl text-center mb-16">
+        <h3 className="text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4">
+          Global Partners
+        </h3>
+        <h2 className="text-5xl md:text-6xl font-black text-emerald-950 mb-6 tracking-tighter">
+          Shop by <span className="text-emerald-600">Factories</span>
+        </h2>
+        <div className="h-1 w-24 bg-emerald-500 mx-auto rounded-full" />
+      </div>
 
-      <div className="relative" style={{ width: W, height: H }}>
-        {/* SVG Path Layer */}
-        <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full pointer-events-none opacity-20">
-          <path 
-            id="factoryPath" 
-            d={buildCurve()} 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="4" 
-            strokeDasharray="8 8"
-            className="text-emerald-800"
-          />
-        </svg>
-
-        {/* Brand Nodes */}
-        {brands.map((brand, i) => (
+      {/* Modern Bento Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
+        {brands.map((brand) => (
           <div
             key={brand.name}
-            className={`brand-node-${i} absolute flex items-center justify-center cursor-pointer shadow-lg will-change-transform`}
-            style={{
-              width: brand.size,
-              height: brand.size,
-              backgroundColor: brand.bg,
-              left: 0,
-              top: 0,
-            }}
-            onMouseEnter={() => { setHovered(i); handleTogglePause(true); }}
-            onMouseLeave={() => { setHovered(null); handleTogglePause(false); }}
+            className="brand-card group relative h-80 bg-white rounded-3xl overflow-hidden shadow-sm border border-emerald-100 cursor-pointer flex flex-col items-center justify-center transition-shadow hover:shadow-2xl hover:shadow-emerald-200/50"
             onClick={() => router.push(`/shop/${brand.name}`)}
           >
-            <div className="relative w-[60%] h-[60%] pointer-events-none">
-              <Image 
-                src={brand.imageSrc} 
-                alt={brand.label} 
-                fill 
+            {/* Background Texture/Accent */}
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-900">
+                <path d="M2 20h20M5 20V8l7-4 7 4v12M9 20v-4h6v4" />
+              </svg>
+            </div>
+
+            {/* Brand Image Container */}
+            <div className="brand-image relative w-32 h-32 mb-6 z-10">
+              <Image
+                src={brand.imageSrc}
+                alt={brand.label}
+                fill
                 className="object-contain"
-                sizes="100px"
+                sizes="150px"
               />
             </div>
 
-            {/* Tooltip */}
-            {hovered === i && (
-              <div className="absolute bottom-[120%] flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="bg-slate-900 text-white p-3 rounded-xl shadow-2xl min-w-[160px] text-center border border-slate-700">
-                  <p className="font-bold text-sm leading-tight">{brand.label}</p>
-                  <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">{brand.description}</p>
-                </div>
-                <div className="w-3 h-3 bg-slate-900 rotate-45 -mt-1.5 border-r border-b border-slate-700" />
-              </div>
-            )}
+            {/* Content Container */}
+            <div className="text-center px-8 z-10">
+              <h4 className="text-xl font-bold text-emerald-900">{brand.label}</h4>
+              <p className="text-sm text-emerald-600/70 mt-2 font-medium line-clamp-2">
+                {brand.description}
+              </p>
+            </div>
+
+            {/* Subtle Green Overlay on Hover */}
+            <div className="green-overlay absolute inset-0 bg-gradient-to-t from-emerald-600/10 to-transparent opacity-0 pointer-events-none" />
+            
+            {/* Bottom Accent Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-1.5 bg-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
           </div>
         ))}
       </div>
