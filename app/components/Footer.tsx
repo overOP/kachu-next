@@ -1,11 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Syne } from 'next/font/google';
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-
-const syne = Syne({ subsets: ['latin'], weight: ['700', '800'] });
 
 export default function Footer() {
   const footerData = [
@@ -33,7 +30,10 @@ export default function Footer() {
                 <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
-              <span className={`${syne.className} font-bold text-xl tracking-tight text-[#2d8c5f]`}>
+              <span
+                className="font-bold text-xl tracking-tight text-[#2d8c5f]"
+                style={{ fontFamily: 'Syne, sans-serif' }}
+              >
                 Kachu Kart
               </span>
             </div>
@@ -51,7 +51,10 @@ export default function Footer() {
           {/* Dynamic Link Columns */}
           {footerData.map((col) => (
             <div key={col.title} className="flex flex-col gap-6">
-              <h4 className={`${syne.className} text-white text-xs uppercase tracking-[0.2em]`}>
+              <h4
+                className="text-white text-xs uppercase tracking-[0.2em]"
+                style={{ fontFamily: 'Syne, sans-serif' }}
+              >
                 {col.title}
               </h4>
               <ul className="flex flex-col gap-3">

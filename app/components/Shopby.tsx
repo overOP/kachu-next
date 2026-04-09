@@ -22,12 +22,12 @@ interface Brand {
 }
 
 const brands: Brand[] = [
-  { name: "pg", bg: "#1B3A8C", size: 110, label: "P&G", description: "Procter & Gamble products", imageSrc: "/shop/p&g.png" },
-  { name: "loreal", bg: "#f5d4dd", size: 110, label: "L'Oréal", description: "L'Oréal Paris cosmetics", imageSrc: "/shop/L’Oreal Paris.png" },
-  { name: "coco", bg: "#E8001C", size: 110, label: "Coca-Cola", description: "Coca-Cola beverages", imageSrc: "/shop/coco.png" },
-  { name: "kraft", bg: "white", size: 110, label: "Kraft", description: "Kraft dairy & food products", imageSrc: "/shop/kraft.png" },
-  { name: "nestle", bg: "#D0021B", size: 110, label: "Nestlé", description: "Nestlé food and drinks", imageSrc: "/shop/nestle.webp" },
-  { name: "pepsi", bg: "white", size: 110, label: "Pepsi", description: "Pepsi beverages", imageSrc: "/shop/pepsi.png" },
+  { name: "pg", bg: "#1B3A8C", size: 110, label: "P&G", description: "Procter & Gamble products", imageSrc: "/shop/pg.svg" },
+  { name: "loreal", bg: "#f5d4dd", size: 110, label: "L'Oréal", description: "L'Oréal Paris cosmetics", imageSrc: "/shop/loreal.svg" },
+  { name: "coco", bg: "#E8001C", size: 110, label: "Coca-Cola", description: "Coca-Cola beverages", imageSrc: "/shop/coco.webp" },
+  { name: "kraft", bg: "white", size: 110, label: "Kraft", description: "Kraft dairy & food products", imageSrc: "/shop/kraft.svg" },
+  { name: "nestle", bg: "#D0021B", size: 110, label: "Nestlé", description: "Nestlé food and drinks", imageSrc: "/shop/nestle.jpg" },
+  { name: "pepsi", bg: "white", size: 110, label: "Pepsi", description: "Pepsi beverages", imageSrc: "/shop/pepsi.svg" },
 ];
 
 const W = 2000;

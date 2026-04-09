@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { FaSearch } from 'react-icons/fa';
+import Link from 'next/link';
+
+const navLinks = [
+  { label: 'Products', href: '#products' },
+  { label: 'Factories', href: '#factories' },
+  { label: 'Admin', href: '/admin' },
+];
 
 export default function Navbar() {
   const navRef = useRef<HTMLElement>(null);
@@ -56,14 +62,14 @@ export default function Navbar() {
 
       {/* Links */}
       <div className=" items-center hidden md:flex gap-8">
-        {['Products', 'Factories', 'Admin'].map((link) => (
-          <a
-            key={link}
-            href="#"
+        {navLinks.map((link) => (
+          <Link
+            key={link.label}
+            href={link.href}
             className="nav-link text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
-            {link}
-          </a>
+            {link.label}
+          </Link>
         ))}
       </div>
 
