@@ -23,15 +23,29 @@ getProduct:builder.query<Product[], void>({
   transformResponse: (response: { products: Product[] }) => response.products,
   
 }),
-addProducts:builder.mutation({
-    query:(newProduct)=>({
+
+addProducts:builder.mutation<void,FormData>({
+    query:(newProductFormData)=>({
         url:'/products',
         method:'POST',
-        body:newProduct,
+        body:newProductFormData,
     }),
-    invalidatesTags:['Product'],
-
+invalidatesTags:[
+    { type: 'Product', id: 'LIST' },
+]
 }),
+updateProduct: builder.mutation<void, { productId: number; formData: FormData }>({
+      query: ({ productId, formData }) => ({
+        url: `/products/${productId}`,
+        method: 'PUT',
+        body: formData,
+      }),
+invalidatesTags: (result, error, { productId }) => [
+      { type: 'Product', id: productId },
+      { type: 'Product', id: 'LIST' },
+    ],
+    }),
+
 
 deleteProduct:builder.mutation({
     query:(productId)=>({

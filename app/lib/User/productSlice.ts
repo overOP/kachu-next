@@ -1,4 +1,4 @@
-// for fetching the products
+// for fetching the products 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export interface Product {
@@ -27,9 +27,18 @@ export const productApi = createApi({
       query: (searchTerm) => `/products/search?q=${searchTerm}`,
 transformResponse: (response: { products: Product[] }) => response.products,
     }),
-    
+
+    getProductById: builder.query({
+      query: (productId) => `/products/${productId}`,
+      transformResponse: (response: { product: Product[] }) => response.product,
+    }),
+getProductByCatagory: builder.query({
+  query: (catagoryId) => `/products/catagory/${catagoryId}`,
+  transformResponse: (response: { product: Product[] }) => response.product,
+}),
+
   })
 });
 
-export const { useGetProductsQuery, useSearchProductsQuery } = productApi;
+export const { useGetProductsQuery,useGetProductByIdQuery, useSearchProductsQuery ,useGetProductByCatagoryQuery} = productApi;
 

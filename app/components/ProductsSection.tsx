@@ -182,7 +182,7 @@ const Products: React.FC = () => {
 
   const sendWhatsApp = (item: Product) => {
     const phoneNumber = "9779857043288";
-    const message = `Hello! I'm interested in: *${item.name}*`;
+    const message = `Hello! I'm interested in the following product:\n\nProduct:${item.name}\nBrand:${item.brand}\nPrice:${item.price}\nMOQ:${item.quantity}\n\nCould you please provide more details?`;
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };

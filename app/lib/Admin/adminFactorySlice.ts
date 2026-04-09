@@ -16,6 +16,7 @@ export const adminFactoryApi = createApi({
     reducerPath: 'adminFactoryApi', 
     baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000/" }),
     tagTypes:['Factory'],
+
     endpoints: (builder) => ({
 getFactory:builder.query<Factory[], void>({
   query: () => "/factorys",
@@ -23,22 +24,38 @@ getFactory:builder.query<Factory[], void>({
   transformResponse: (response: { Factorys: Factory[] }) => response.Factorys,
   
 }),
-addFactorys:builder.mutation({
-    query:(newFactory)=>({
+
+addFactorys:builder.mutation<void,FormData>({
+    query:(newFactoryFormData)=>({
         url:'/factorys',
         method:'POST',
-        body:newFactory,
+        body:newFactoryFormData,
     }),
-    invalidatesTags:['Factory'],
-
+invalidatesTags:[
+    { type: 'Factory', id: 'LIST' },
+]
 }),
+updateFactory: builder.mutation<void, { factoryId: number; formData: FormData }>({
+      query: ({ factoryId, formData }) => ({
+        url: `/factorys/${factoryId}`,
+        method: 'PUT',
+        body: formData,
+      }),
+      invalidatesTags: (result, error, { factoryId }) => [
+        { type: 'Factory', id: factoryId },
+        { type: 'Factory', id: 'LIST' },
+      ],
+    }),
 
 deleteFactory:builder.mutation({
     query:(FactoryId)=>({
         url:`/factorys/${FactoryId}`,
         method:'DELETE',
     }),
-    invalidatesTags:['Factory'],
+invalidatesTags: (result, error, { FactoryId }) => [
+      { type: 'Factory', id: FactoryId },
+      { type: 'Factory', id: 'LIST' },
+    ],
 })
 
 }),
