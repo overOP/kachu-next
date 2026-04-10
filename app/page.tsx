@@ -5,10 +5,9 @@ import Navbar from './components/Navbar';
 import HeroSlider from './components/HeroSlider';
 import AboutSection from './components/AboutSection';
 import ProductsSection from './components/ProductsSection';
-import FactoriesSection from './components/FactoriesSection';
 import Footer from './components/Footer';
-import ShopBy from './components/Shopby';
 import ChooseUs from './components/ChooseUs';
+import OwnerMessage from './components/OwnerMessage';
 
 export default function Home() {
   useLenis();
@@ -19,10 +18,9 @@ export default function Home() {
       <div className="pt-16">
         <HeroSlider />
         <AboutSection />
-        <ShopBy/>
         <ProductsSection />
+        <OwnerMessage/>
         <ChooseUs/>
-        <FactoriesSection />
         <Footer />
       </div>
     </main>

@@ -46,6 +46,7 @@ updateFactory: builder.mutation<void, { factoryId: number; formData: FormData }>
         { type: 'Factory', id: 'LIST' },
       ],
     }),
+    
 
 deleteFactory:builder.mutation({
     query:(FactoryId)=>({

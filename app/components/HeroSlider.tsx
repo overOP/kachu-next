@@ -76,7 +76,7 @@ export default function HeroSlider() {
     <div 
       ref={containerRef} 
       className="relative w-full overflow-hidden bg-black" 
-      style={{ height: '88vh', maxHeight: 680 }}
+      style={{ height: '100vh', maxHeight: 900 }}
     >
       {/* Background Images Layer */}
       {slides.map((s, i) => (
@@ -152,7 +152,7 @@ export default function HeroSlider() {
           ))}
         </div>
         
-        <div className="flex gap-2">
+        <div className=" hidden md:flex gap-2">
           <NavBtn icon="‹" onClick={prev} label="Previous slide" />
           <NavBtn icon="›" onClick={next} label="Next slide" />
         </div>

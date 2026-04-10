@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { User } from "./stateAuth";
-import { verify } from "crypto";
 
 
 export const userAuthApi = createApi({
@@ -36,13 +35,13 @@ export const userAuthApi = createApi({
       }),
         }),
         
-        verifyToken: builder.mutation<void, { resetToken: string }>({
-            query: (body) => ({
-            url: '/verify-token',
-            method: 'POST',
-            body,
-            }),
-        }),
+        // verifyToken: builder.mutation<void, { resetToken: string }>({
+        //     query: (body) => ({
+        //     url: '/verify-token',
+        //     method: 'POST',
+        //     body,
+        //     }),
+        // }),
 
       resetPassword: builder.mutation<void, { resetToken: string; password: string }>({
         query: (body) => ({
