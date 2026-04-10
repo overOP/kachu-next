@@ -14,11 +14,12 @@ interface AuthState {
   user: User | null; 
   isAuthenticated: boolean;
 }
+const isBrowser = typeof window !== 'undefined';
 
 const initialState: AuthState = {
-  token: localStorage.getItem('token'),
-  user: JSON.parse(localStorage.getItem('userData') || 'null'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token:isBrowser? localStorage.getItem('token'):null,
+  user:isBrowser? JSON.parse(localStorage.getItem('userData') || 'null'):null,
+  isAuthenticated: isBrowser? !!localStorage.getItem('token'):false,
 };
 
 const authSlice = createSlice({

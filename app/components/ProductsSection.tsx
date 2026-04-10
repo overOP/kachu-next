@@ -335,7 +335,7 @@ export default Products;
 //   const [currentPage, setCurrentPage] = useState(1);
 //   const itemsPerPage = 8;
 
-//   const {data:allProducts=[],isLoading,isError}=useGetProductsQuery();
+  // const {data:allProducts=[],isLoading,isError}=useGetProductsQuery();
 
 //   const totalPages = Math.ceil(allProducts.length / itemsPerPage);
 //   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -349,12 +349,12 @@ export default Products;
 //     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 //   };
 
-//   if (isLoading) {
-//     return <div>Loading...</div>;
-//   } 
-//   if (isError) {
-//     return <div>Error:cant fetch now </div>;
-//   }
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // } 
+  // if (isError) {
+  //   return <div>Error:cant fetch now </div>;
+  // }
 
 
 
