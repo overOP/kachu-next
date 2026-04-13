@@ -1,32 +1,51 @@
 'use client';
 
 import { useEffect } from 'react';
-import Lenis from 'lenis';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export function useLenis() {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      smoothWheel: true,
-    });
+let lenis: any = null;
+    let raf: ((time: number) => void) | null = null;
+    let gsap: any = null;
+    let isMounted = true;
 
-    lenis.on('scroll', ScrollTrigger.update);
+    async function setup() {
+      const [{ default: Lenis }, gsapModule] = await Promise.all([
+        import('lenis'),
+        import('gsap'),
+      ]);
 
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+      if (!isMounted) return;
 
-    gsap.ticker.lagSmoothing(0);
+      gsap = gsapModule.gsap ?? gsapModule.default ?? gsapModule;
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+      gsap.registerPlugin(ScrollTrigger);
+
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        smoothWheel: true,
+      });
+
+      lenis.on('scroll', ScrollTrigger.update);
+
+raf = (_time: number) => {
+        lenis?.raf(_time * 1000);
+      };
+
+      gsap.ticker.add(raf);
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    setup();
 
     return () => {
-      lenis.destroy();
-      gsap.ticker.remove(() => {});
+      isMounted = false;
+      if (raf && gsap?.ticker) {
+        gsap.ticker.remove(raf);
+      }
+      lenis?.destroy();
     };
   }, []);
 }

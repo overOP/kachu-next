@@ -1,6 +1,6 @@
 "use client";
 
-import { Boxes, Factory, LayoutDashboard, LogOut, Package } from "lucide-react";
+import { Boxes, LayoutDashboard, LogOut, Package } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +10,7 @@ export default function Sidebar() {
   const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/factory", label: "Factory", icon: Factory },
+
     { href: "/admin/category", label: "Category", icon: Boxes },
   ];
 
@@ -28,7 +28,7 @@ export default function Sidebar() {
             priority
           />
         </div>
-        
+
         <div className="px-7 mt-40 flex flex-col gap-6">
           <ul className="flex flex-col gap-4 text-white">
             {navItems.map((item) => {

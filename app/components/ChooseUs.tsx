@@ -1,13 +1,10 @@
-import React from 'react';
+import React from "react";
 
-import { FEATURE_DATA,type Feature } from '../utlis/utlity';
+import { FEATURE_DATA, type Feature } from "../utlis/utlity";
 
 const FEATURES: Feature[] = FEATURE_DATA;
 
-
-
-
-const ChooseUs: React.FC = () => {
+const ChooseUs: React.FC = React.memo(() => {
   return (
     <section className="bg-gray-50 py-16 px-4 font-sans">
       <div className="bg-[#064E3B] max-w-7xl mx-auto rounded-3xl py-12 px-8">
@@ -27,11 +24,11 @@ const ChooseUs: React.FC = () => {
               <div className="bg-emerald-100 text-[#064E3B] p-3 rounded-xl mb-6">
                 {feature.icon}
               </div>
-              
+
               <h3 className="text-gray-900 font-bold text-lg mb-3 tracking-tight">
                 {feature.title}
               </h3>
-              
+
               <p className="text-gray-500 text-sm leading-relaxed">
                 {feature.desc}
               </p>
@@ -41,6 +38,6 @@ const ChooseUs: React.FC = () => {
       </div>
     </section>
   );
-};
+});
 
 export default ChooseUs;

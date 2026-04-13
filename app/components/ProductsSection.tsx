@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiArrowLeft, FiArrowRight, FiExternalLink } from "react-icons/fi";
@@ -28,7 +28,8 @@ const PRODUCTS_DATA: Record<string, Product[]> = {
       rate: "4.5(1k reviews)",
       quantity: "MOQ: 50 units",
       logo: "https://i.pinimg.com/originals/1e/c1/d2/1ec1d2ce366d1f603b1bde70ae508063.png",
-      Description: "High-quality cocoa powder perfect for baking and beverages.",
+      Description:
+        "High-quality cocoa powder perfect for baking and beverages.",
     },
     {
       id: 2,
@@ -83,7 +84,7 @@ const PRODUCTS_DATA: Record<string, Product[]> = {
   ],
 };
 
-const Products: React.FC = () => {
+const Products: React.FC = memo(() => {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -92,12 +93,15 @@ const Products: React.FC = () => {
   const allProducts = useMemo(() => Object.values(PRODUCTS_DATA).flat(), []);
   const totalPages = Math.ceil(allProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = allProducts.slice(startIndex, startIndex + itemsPerPage);
+  const currentProducts = allProducts.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   const sendWhatsApp = (item: Product) => {
-    const phoneNumber ="9779857043288";
+    const phoneNumber = "9779857043288";
     const message = `Hello! I'm interested in the following product:\n\n*Product:* ${item.name}\n*Brand:* ${item.brand}\n*Price:* ${item.price}\n*MOQ:* ${item.quantity}\n\nCould you please provide more details?`;
-    
+
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -108,10 +112,12 @@ const Products: React.FC = () => {
       <header className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-100 pb-8">
         <div>
           <h1 className="text-5xl font-light tracking-tight text-slate-900">
-            Popular <span className="font-semibold text-emerald-900">Products</span>
+            Popular{" "}
+            <span className="font-semibold text-emerald-900">Products</span>
           </h1>
           <p className="text-slate-400 mt-4 font-medium uppercase tracking-[0.2em] text-[10px]">
-            Displaying {startIndex + 1} — {startIndex + currentProducts.length} of {allProducts.length} Results
+            Displaying {startIndex + 1} — {startIndex + currentProducts.length}{" "}
+            of {allProducts.length} Results
           </p>
         </div>
       </header>
@@ -133,17 +139,23 @@ const Products: React.FC = () => {
                 className="object-contain p-10 mix-blend-multiply transition-all duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 25vw"
               />
-              
+
               {/* Floating Brand Logo */}
               <div className="absolute top-5 left-5 bg-white/60 backdrop-blur-md p-1.5 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Image src={item.logo} alt="brand" width={24} height={24} className="object-contain opacity-80" />
+                <Image
+                  src={item.logo}
+                  alt="brand"
+                  width={24}
+                  height={24}
+                  className="object-contain opacity-80"
+                />
               </div>
 
               {/* View Overlay */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                 <div className="bg-slate-900 text-white p-4 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                    <FiExternalLink size={18} />
-                 </div>
+                <div className="bg-slate-900 text-white p-4 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                  <FiExternalLink size={18} />
+                </div>
               </div>
             </div>
 
@@ -154,10 +166,10 @@ const Products: React.FC = () => {
                   {item.name}
                 </h3>
                 <span className="text-[10px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
-                  {item.rate.split('(')[0]} ★
+                  {item.rate.split("(")[0]} ★
                 </span>
               </div>
-              
+
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
                 {item.quantity}
               </p>
@@ -186,37 +198,41 @@ const Products: React.FC = () => {
       {/* Pagination */}
       <footer className="mt-24 pt-12 border-t border-slate-100 flex items-center justify-between">
         <button
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
           className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-black hover:text-black disabled:opacity-60 transition-all group"
         >
-          <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Previous
+          <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />{" "}
+          Previous
         </button>
-        
+
         <div className="flex gap-6">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`text-[10px] font-black transition-all ${
-                page === currentPage ? "text-emerald-700 scale-150" : "text-slate-300 hover:text-slate-500"
+                page === currentPage
+                  ? "text-emerald-700 scale-150"
+                  : "text-slate-300 hover:text-slate-500"
               }`}
             >
-              {page.toString().padStart(2, '0')}
+              {page.toString().padStart(2, "0")}
             </button>
           ))}
         </div>
 
         <button
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
           className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-black hover:text-black disabled:opacity-60 transition-all group"
         >
-          Next <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+          Next{" "}
+          <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
         </button>
       </footer>
     </div>
   );
-};
+});
 
 export default Products;

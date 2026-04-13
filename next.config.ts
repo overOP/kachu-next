@@ -1,5 +1,6 @@
 import path from "path";
 import type { NextConfig } from "next";
+import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -21,6 +22,30 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'logoeps.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+webpack: (config) => {
+    if (process.env.ANALYZE) {
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'server',
+          openAnalyzer: true,
+        })
+      );
+    }
+    return config;
   },
 };
 
