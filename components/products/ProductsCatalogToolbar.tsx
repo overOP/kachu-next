@@ -1,0 +1,135 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FiSearch } from "react-icons/fi";
+import type { ProductCategory } from "@/lib/data/products";
+
+const DEBOUNCE_MS = 320;
+
+type ProductsCatalogToolbarProps = {
+  categories: ProductCategory[];
+  /** Current category from URL (`all` or a slug). */
+  categorySlug: string;
+  onCategoryChange: (slug: string) => void;
+};
+
+export default function ProductsCatalogToolbar({
+  categories,
+  categorySlug,
+  onCategoryChange,
+}: ProductsCatalogToolbarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const qFromUrl = searchParams.get("q") ?? "";
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [draft, setDraft] = useState(qFromUrl);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setDraft(qFromUrl));
+    return () => cancelAnimationFrame(id);
+  }, [qFromUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const replaceQuery = useCallback(
+    (nextQ: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const trimmed = nextQ.trim();
+      if (trimmed) params.set("q", trimmed);
+      else params.delete("q");
+      const qs = params.toString();
+      router.replace(qs ? `/products?${qs}` : "/products", { scroll: false });
+    },
+    [router, searchParams]
+  );
+
+  const onDraftChange = (value: string) => {
+    setDraft(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      replaceQuery(value);
+    }, DEBOUNCE_MS);
+  };
+
+  const submitSearch = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    replaceQuery(draft);
+  };
+
+  return (
+    <div className="mb-12 space-y-6">
+      <div className="relative max-w-xl">
+        <label htmlFor="catalog-search" className="sr-only">
+          Search catalog
+        </label>
+        <FiSearch
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-zinc-500"
+          aria-hidden
+        />
+        <input
+          id="catalog-search"
+          type="search"
+          enterKeyHint="search"
+          autoComplete="off"
+          placeholder="Search by name, brand, or price…"
+          value={draft}
+          onChange={(e) => onDraftChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submitSearch();
+            }
+          }}
+          className="w-full rounded-2xl border border-emerald-100 bg-white py-3.5 pl-11 pr-4 text-sm text-emerald-950 shadow-sm outline-none ring-emerald-500/20 transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-sky-500/50 dark:focus:ring-sky-500/20"
+        />
+      </div>
+
+      <div>
+        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-sky-400">
+          Category
+        </p>
+        <div
+          className="flex flex-wrap gap-2 sm:gap-3"
+          role="group"
+          aria-label="Filter by category"
+        >
+          <button
+            type="button"
+            onClick={() => onCategoryChange("all")}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              categorySlug === "all"
+                ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
+                : "border border-emerald-100 bg-white text-emerald-900 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-600"
+            }`}
+          >
+            All
+          </button>
+          {categories.map(({ slug, label }) => (
+            <button
+              key={slug}
+              type="button"
+              onClick={() => onCategoryChange(slug)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                categorySlug === slug
+                  ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
+                  : "border border-emerald-100 bg-white text-emerald-900 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-600"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
