@@ -91,12 +91,7 @@ export default function HeroSlider() {
       {HERO_SLIDES.map((s, i) => (
         <div
           key={i}
-          className="absolute inset-0 will-change-opacity overflow-hidden"
-          style={{ 
-            opacity: i === current ? 1 : 0, 
-            zIndex: i === current ? 1 : 0,
-            transition: prefersReducedMotion ? 'none' : 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
+          className={`absolute inset-0 will-change-opacity overflow-hidden ${i === current ? 'z-[1] opacity-100' : 'z-0 opacity-0'} ${prefersReducedMotion ? '' : 'transition-opacity duration-[1200ms] ease-[cubic-bezier(0.4,0,0.2,1)]'}`}
         >
           <Image
             src={s.img}
@@ -104,11 +99,7 @@ export default function HeroSlider() {
             fill
             priority={i === 0}
             sizes="100vw"
-            className={`object-cover ${prefersReducedMotion ? "" : "transition-transform duration-[8000ms] ease-linear"}`}
-            style={{ 
-              filter: 'brightness(0.7)',
-              transform: prefersReducedMotion ? 'none' : i === current ? 'scale(1.05)' : 'scale(1.15)',
-            }}
+            className={`object-cover brightness-[0.7] ${prefersReducedMotion ? "" : "transition-transform duration-[8000ms] ease-linear"} ${prefersReducedMotion ? "" : i === current ? "scale-105" : "scale-115"}`}
           />
         </div>
       ))}
@@ -125,8 +116,7 @@ export default function HeroSlider() {
         </span>
         <h1 
           data-anim 
-          className="text-3xl sm:text-4xl md:text-6xl font-black text-white mb-4 sm:mb-6 leading-[1.05] tracking-tight whitespace-pre-line"
-          style={{ fontFamily: 'Syne, sans-serif' }}
+          className="font-syne text-3xl sm:text-4xl md:text-6xl font-black text-white mb-4 sm:mb-6 leading-[1.05] tracking-tight whitespace-pre-line"
         >
           {slide.title}
         </h1>
@@ -157,8 +147,7 @@ export default function HeroSlider() {
                 title={`Go to slide ${i + 1}`}
                 aria-label={`Go to slide ${i + 1}`}
                 aria-pressed="true"
-                className="h-1.5 transition-all duration-500 rounded-full"
-                style={{ width: "40px", background: "#10b981" }}
+                className="h-1.5 w-10 bg-emerald-500 transition-all duration-500 rounded-full"
               />
             ) : (
               <button
@@ -167,8 +156,7 @@ export default function HeroSlider() {
                 title={`Go to slide ${i + 1}`}
                 aria-label={`Go to slide ${i + 1}`}
                 aria-pressed="false"
-                className="h-1.5 transition-all duration-500 rounded-full"
-                style={{ width: "8px", background: "rgba(255,255,255,0.3)" }}
+                className="h-1.5 w-2 bg-white/30 transition-all duration-500 rounded-full"
               />
             )
           ))}

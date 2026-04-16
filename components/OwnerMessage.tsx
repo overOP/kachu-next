@@ -88,7 +88,7 @@ export default function OwnerMessage() {
           
           {/* Floating Badge */}
           <div className="owner-text-reveal absolute -bottom-6 -right-6 md:right-10 bg-emerald-600 dark:bg-sky-600 p-8 rounded-2xl z-20 shadow-2xl shadow-emerald-900/40 dark:shadow-sky-950/50">
-            <p className="text-white font-black text-2xl tracking-tighter" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <p className="font-roboto text-white font-black text-2xl tracking-tighter">
               Est. 2024
             </p>
             <p className="text-emerald-100 dark:text-sky-100 text-[10px] uppercase tracking-widest font-bold">Kachu Kart</p>
@@ -106,8 +106,7 @@ export default function OwnerMessage() {
           </span>
 
           <h2 
-            className="owner-text-reveal text-3xl md:text-5xl font-black text-white mb-8 leading-[1.1]"
-            style={{ fontFamily: 'Syne, sans-serif' }}
+            className="owner-text-reveal font-syne text-3xl md:text-5xl font-black text-white mb-8 leading-[1.1]"
           >
             {OWNER_DATA.quote}
           </h2>
@@ -121,8 +120,7 @@ export default function OwnerMessage() {
           <div className="owner-text-reveal mt-12 pt-12 border-t border-white/10 flex items-center gap-6">
             <div className="flex flex-col">
               <span 
-                className="text-2xl md:text-3xl text-emerald-400 dark:text-sky-300 italic mb-1" 
-                style={{ fontFamily: 'Dancing Script, cursive' }}
+                className="font-script text-2xl md:text-3xl text-emerald-400 dark:text-sky-300 italic mb-1" 
               >
                 {OWNER_DATA.signature}
               </span>

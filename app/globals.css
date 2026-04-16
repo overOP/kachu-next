@@ -29,6 +29,10 @@ body {
   overflow-x: hidden;
 }
 
+.font-syne { font-family: 'Syne', sans-serif; }
+.font-roboto { font-family: 'Roboto', sans-serif; }
+.font-script { font-family: 'Dancing Script', cursive; }
+
 .grain::after {
   content: '';
   position: fixed;

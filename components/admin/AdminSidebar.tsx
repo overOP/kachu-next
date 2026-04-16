@@ -23,8 +23,7 @@ export default function AdminSidebar() {
       <div className="flex items-center justify-between gap-3 px-5 py-5 lg:flex-col lg:items-stretch lg:px-4">
         <Link
           href="/admin"
-          className="font-bold tracking-tight text-emerald-800 dark:text-sky-400"
-          style={{ fontFamily: "Syne, sans-serif" }}
+          className="font-syne font-bold tracking-tight text-emerald-800 dark:text-sky-400"
         >
           Kachu Admin
         </Link>

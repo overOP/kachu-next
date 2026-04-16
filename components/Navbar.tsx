@@ -162,8 +162,7 @@ function NavbarContent() {
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
           <span
-            className="hidden sm:inline truncate font-bold text-lg md:text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400"
-            style={{ fontFamily: "Syne, sans-serif" }}
+            className="font-syne hidden sm:inline truncate font-bold text-lg md:text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400"
           >
             Kachu Kart
           </span>

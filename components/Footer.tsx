@@ -37,7 +37,7 @@ export default function Footer() {
                 Kachu Kart
               </span>
             </div>
-            <p className="text-sm leading-relaxed max-w-xs font-medium text-white/40 border-l border-emerald-500/20 dark:border-sky-500/25 pl-4">
+            <p className="text-sm leading-relaxed max-w-xs font-medium text-white/70 border-l border-emerald-500/20 dark:border-sky-500/25 pl-4">
               A trusted wholesale marketplace bridging the gap between global factories and savvy buyers.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">

@@ -85,8 +85,7 @@ export default function AboutSection() {
             Our Identity
           </span>
           <h2 
-            className="text-4xl md:text-6xl font-black text-slate-900 dark:text-slate-100 tracking-tight"
-            style={{ fontFamily: 'Syne, sans-serif' }}
+            className="font-syne text-4xl md:text-6xl font-black text-slate-900 dark:text-slate-100 tracking-tight"
           >
             About Us
           </h2>
@@ -98,8 +97,7 @@ export default function AboutSection() {
           {/* Text Content */}
           <div className="about-content p-8 md:p-16 flex flex-col justify-center order-2 lg:order-1">
             <h3 
-              className="text-2xl md:text-3xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-tight"
-              style={{ fontFamily: 'Syne, sans-serif' }}
+              className="font-syne text-2xl md:text-3xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-tight"
             >
               Welcome to Kachu Kart
             </h3>
@@ -144,12 +142,11 @@ export default function AboutSection() {
               className="stat-item bg-white dark:bg-zinc-900 p-4 sm:p-6 md:p-10 rounded-xl sm:rounded-[1.5rem] border border-gray-100 dark:border-zinc-800 text-center transition-hover hover:border-emerald-200 dark:hover:border-sky-600/40 hover:shadow-xl hover:shadow-emerald-900/5 dark:hover:shadow-black/40"
             >
               <div 
-                className="text-2xl sm:text-3xl md:text-5xl leading-none font-black text-emerald-600 dark:text-sky-400 mb-1 sm:mb-2"
-                style={{ fontFamily: 'Syne, sans-serif' }}
+                className="font-syne text-2xl sm:text-3xl md:text-5xl leading-none font-black text-emerald-600 dark:text-sky-400 mb-1 sm:mb-2"
               >
                 {stat.value}
               </div>
-              <div className="text-[10px] sm:text-xs md:text-sm text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-[0.12em] sm:tracking-widest">
+              <div className="text-[10px] sm:text-xs md:text-sm text-slate-500 dark:text-zinc-300 font-bold uppercase tracking-[0.12em] sm:tracking-widest">
                 {stat.label}
               </div>
             </div>
