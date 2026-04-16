@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import StoreProvider from "@/components/providers/StoreProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { getSiteUrl } from "@/lib/config/site-url";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

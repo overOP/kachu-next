@@ -1,5 +1,8 @@
 "use server";
 
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import type { Product } from "@/lib/data/products";
 import { addProduct } from "@/lib/services/product-catalog";
@@ -13,7 +16,16 @@ const MAX = {
   rate: 40,
   url: 2048,
   description: 2000,
+  imageBytes: 5 * 1024 * 1024,
 } as const;
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+]);
 
 function isHttpsUrl(value: string): boolean {
   try {
@@ -28,6 +40,31 @@ function trim(formData: FormData, key: string): string {
   return (formData.get(key) as string | null)?.trim() ?? "";
 }
 
+function imageExtension(mimeType: string): string {
+  const map: Record<string, string> = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/avif": ".avif",
+  };
+  return map[mimeType] ?? ".bin";
+}
+
+async function persistUploadedImage(file: File): Promise<string> {
+  const uploadsDir = path.join(process.cwd(), "public", "uploads", "products");
+  await mkdir(uploadsDir, { recursive: true });
+
+  const extension = imageExtension(file.type);
+  const filename = `${Date.now()}-${randomUUID()}${extension}`;
+  const filePath = path.join(uploadsDir, filename);
+
+  const arrayBuffer = await file.arrayBuffer();
+  await writeFile(filePath, Buffer.from(arrayBuffer));
+
+  return `/uploads/products/${filename}`;
+}
+
 export type CreateProductResult =
   | { ok: true }
   | { ok: false; error: string; fieldErrors?: Partial<Record<string, string>> };
@@ -39,7 +76,7 @@ export async function createProductAction(formData: FormData): Promise<CreatePro
   const price = trim(formData, "price");
   const quantity = trim(formData, "quantity");
   const rate = trim(formData, "rate");
-  const img = trim(formData, "img");
+  const imageFile = formData.get("imageFile");
   const logo = trim(formData, "logo");
   const Description = trim(formData, "Description");
 
@@ -63,9 +100,17 @@ export async function createProductAction(formData: FormData): Promise<CreatePro
   if (Description.length < 4 || Description.length > MAX.description) {
     fieldErrors.Description = "Description must be 4–2000 characters.";
   }
-  if (!isHttpsUrl(img)) {
-    fieldErrors.img = "Image must be a valid https:// URL.";
+
+  if (!(imageFile instanceof File) || imageFile.size === 0) {
+    fieldErrors.imageFile = "Product image is required.";
+  } else {
+    if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+      fieldErrors.imageFile = "Allowed formats: JPG, PNG, WEBP, GIF, AVIF.";
+    } else if (imageFile.size > MAX.imageBytes) {
+      fieldErrors.imageFile = "Image must be 5MB or less.";
+    }
   }
+
   if (!isHttpsUrl(logo)) {
     fieldErrors.logo = "Logo must be a valid https:// URL.";
   }
@@ -80,6 +125,13 @@ export async function createProductAction(formData: FormData): Promise<CreatePro
     return { ok: false, error: "Please fix the highlighted fields.", fieldErrors };
   }
 
+  let imagePath: string;
+  try {
+    imagePath = await persistUploadedImage(imageFile as File);
+  } catch {
+    return { ok: false, error: "Could not upload image. Try again." };
+  }
+
   const payload: Omit<Product, "id"> = {
     name,
     brand,
@@ -87,7 +139,7 @@ export async function createProductAction(formData: FormData): Promise<CreatePro
     price,
     quantity,
     rate,
-    img,
+    img: imagePath,
     logo,
     Description,
   };

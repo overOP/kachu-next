@@ -28,7 +28,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               src={product.img}
               alt={product.name}
               fill
-              className="object-contain p-6 sm:p-10 mix-blend-multiply"
+              className="object-contain p-6 sm:p-10 mix-blend-multiply dark:mix-blend-normal dark:drop-shadow-[0_10px_28px_rgba(255,255,255,0.14)]"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />

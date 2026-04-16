@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { usePrefersReducedMotion } from '@/lib/hooks/use-prefers-reduced-motion';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -26,8 +27,10 @@ image:"/photo.jpeg",
 export default function OwnerMessage() {
   const containerRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useGSAP(() => {
+    if (prefersReducedMotion) return;
     // Parallax effect on the image
     gsap.to(imageRef.current, {
       yPercent: 15,
@@ -62,7 +65,7 @@ export default function OwnerMessage() {
       ease: 'back.out(1.7)',
     }, '-=0.6');
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [prefersReducedMotion] });
 
   return (
     <section ref={containerRef} className="relative py-24 lg:py-40 px-6 overflow-hidden bg-green-950 dark:bg-zinc-950">

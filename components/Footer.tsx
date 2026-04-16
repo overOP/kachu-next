@@ -9,7 +9,7 @@ const syne = Syne({ subsets: ['latin'], weight: ['700', '800'] });
 
 export default function Footer() {
   const footerData = [
-    { title: 'Company', links: ['About', 'Products', 'Factories'] },
+    { title: 'Company', links: ['About', 'Products', 'Contact'] },
     { 
       title: 'Contact Us', 
       contactItems: [
@@ -22,12 +22,12 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#002018] dark:bg-zinc-950 text-white/50 py-16 px-6 md:px-12 selection:bg-emerald-500/30 dark:selection:bg-sky-500/25">
+    <footer className="bg-[#002018] dark:bg-zinc-950 text-white/50 py-16 px-4 sm:px-6 md:px-12 selection:bg-emerald-500/30 dark:selection:bg-sky-500/25">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+        <div className="flex flex-col gap-6 sm:gap-8 lg:grid lg:grid-cols-4 lg:gap-12 mb-16 sm:mb-20">
           
           {/* Brand Column */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5 rounded-3xl border border-white/8 bg-white/5 p-5 sm:p-6 lg:border-0 lg:bg-transparent lg:p-0">
             <div className="flex items-center gap-2">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="text-[#2d8c5f] dark:text-sky-400">
                 <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
@@ -40,7 +40,7 @@ export default function Footer() {
             <p className="text-sm leading-relaxed max-w-xs font-medium text-white/40 border-l border-emerald-500/20 dark:border-sky-500/25 pl-4">
               A trusted wholesale marketplace bridging the gap between global factories and savvy buyers.
             </p>
-            <div className="flex gap-3 mt-2">
+            <div className="flex flex-wrap gap-3 pt-1">
               <SocialIcon href="#" icon={<FaFacebookF />} hoverColor="hover:bg-[#1877F2]" />
               <SocialIcon href="#" icon={<FaInstagram />} hoverColor="hover:bg-[#E4405F]" />
               <SocialIcon href="#" icon={<FaXTwitter />} hoverColor="hover:bg-black" />
@@ -50,16 +50,16 @@ export default function Footer() {
 
           {/* Dynamic Link Columns */}
           {footerData.map((col) => (
-            <div key={col.title} className="flex flex-col gap-6">
+            <div key={col.title} className="flex flex-col gap-5 rounded-3xl border border-white/8 bg-white/5 p-5 sm:p-6 lg:border-0 lg:bg-transparent lg:p-0">
               <h4 className={`${syne.className} text-white text-xs uppercase tracking-[0.2em]`}>
                 {col.title}
               </h4>
-              <ul className="flex flex-col gap-3">
+              <ul className={`flex gap-3 ${col.links ? "flex-row flex-wrap lg:flex-col" : "flex-col"}`}>
                 {col.links?.map((link) => (
                   <li key={link}>
                     <Link 
                       href={`/${link.toLowerCase().replace(' ', '-')}`} 
-                      className="text-sm font-medium hover:text-emerald-400 dark:hover:text-sky-300 hover:translate-x-1 transition-all duration-300 inline-block"
+                      className="inline-flex items-center rounded-full border border-white/8 bg-white/6 px-3 py-2 text-sm font-medium hover:text-emerald-400 dark:hover:text-sky-300 hover:border-emerald-400/30 dark:hover:border-sky-400/30 transition-all duration-300 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:hover:translate-x-1"
                     >
                       {link}
                     </Link>
@@ -68,8 +68,8 @@ export default function Footer() {
                 
                 {/* Render Contact Items with Icons if they exist */}
                 {col.contactItems?.map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3 text-sm font-medium group">
-                    <span className="text-emerald-500 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                  <li key={idx} className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/6 px-3 py-3 text-sm font-medium group lg:border-0 lg:bg-transparent lg:px-0 lg:py-0">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 dark:bg-sky-500/10 dark:text-sky-400 group-hover:scale-110 transition-transform">
                       {item.icon}
                     </span>
                     <span className="hover:text-emerald-400 dark:hover:text-sky-300 cursor-pointer transition-colors">
@@ -83,11 +83,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-          <p className="text-[10px] uppercase tracking-widest font-bold">
+        <div className="border-t border-white/5 pt-8 sm:pt-10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-between gap-3 sm:gap-4 text-center sm:text-left">
+          <p className="text-[10px] uppercase tracking-widest font-bold order-2 sm:order-1">
             &copy; 2026 <span className="text-emerald-500 dark:text-sky-400">Kachu Kart</span>. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 group cursor-default">
+          <div className="flex items-center gap-2 group cursor-default order-1 sm:order-2">
             <span className="text-[10px] uppercase tracking-widest font-bold">Built by</span>
             <Link 
               href="https://theorigintech.com" 

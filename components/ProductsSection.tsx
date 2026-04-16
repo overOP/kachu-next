@@ -12,7 +12,6 @@ import React, {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FiArrowLeft, FiArrowRight, FiShoppingBag } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
@@ -128,14 +127,7 @@ function ProductsSectionInner({
   const startIndex = (safePage - 1) * itemsPerPage;
   const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
-  useGSAP(() => {
-    gsap.from(".product-card", {
-      y: 40,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-    });
-  }, [safePage, deferredQuery, deferredCategory]);
+ 
 
   const sendWhatsApp = (item: Product) => {
     const phoneNumber = "9779857043288";
@@ -219,7 +211,7 @@ function ProductsSectionInner({
                       alt={item.name}
                       fill
                       sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-contain p-2 sm:p-6 mix-blend-multiply transition-transform duration-700 group-hover:scale-110"
+                      className="object-contain p-2 sm:p-6 mix-blend-multiply dark:mix-blend-normal dark:drop-shadow-[0_8px_24px_rgba(255,255,255,0.12)] transition-transform duration-700 group-hover:scale-110"
                     />
 
                     <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white dark:bg-zinc-900 shadow-sm p-1 sm:p-2 rounded-lg sm:rounded-xl">

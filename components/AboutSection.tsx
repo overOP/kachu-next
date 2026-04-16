@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { usePrefersReducedMotion } from '@/lib/hooks/use-prefers-reduced-motion';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -19,8 +20,10 @@ const stats = [
 
 export default function AboutSection() {
   const containerRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useGSAP(() => {
+    if (prefersReducedMotion) return;
     // Title Animation
     gsap.from('.about-title', {
       y: 40,
@@ -70,7 +73,7 @@ export default function AboutSection() {
         start: 'top 85%',
       },
     });
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [prefersReducedMotion] });
 
   return (
     <section ref={containerRef} className="py-20 lg:py-32 px-6 md:px-12 bg-gray-50/50 dark:bg-zinc-950">

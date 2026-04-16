@@ -43,9 +43,9 @@ export default function LoginPage() {
             autoComplete="current-password"
             placeholder="••••••••"
             labelExtra={
-              <button type="button" className="text-xs font-semibold text-emerald-600 dark:text-sky-400 hover:underline">
+              <Link href="/forgot-password" className="text-xs font-semibold text-emerald-600 dark:text-sky-400 hover:underline">
                 Forgot password?
-              </button>
+              </Link>
             }
           />
 

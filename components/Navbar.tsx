@@ -16,7 +16,7 @@ const links = [
 const SEARCH_DEBOUNCE_MS = 320;
 
 const burgerToggleClass =
-  "flex flex-col gap-[5px] p-2 bg-none border-none cursor-pointer md:hidden z-[70]";
+  "flex flex-col gap-[5px] p-1.5 bg-none border-none cursor-pointer md:hidden z-[70] shrink-0";
 
 function BurgerLines({
   open,
@@ -137,7 +137,7 @@ function NavbarContent() {
     <>
       <nav
         ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-8 h-16 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 sm:px-6 md:px-8 h-16 transition-all duration-500 ${
           scrolled
             ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 dark:bg-zinc-950/95 dark:border-zinc-800"
             : "bg-white/80 backdrop-blur-sm dark:bg-zinc-950/80"
@@ -145,7 +145,7 @@ function NavbarContent() {
       >
         <Link
           href="/"
-          className="flex items-center gap-2 [&_svg]:stroke-[#2d8c5f] dark:[&_svg]:stroke-sky-400"
+          className="flex min-w-0 items-center gap-2 [&_svg]:stroke-[#2d8c5f] dark:[&_svg]:stroke-sky-400"
         >
           <svg
             width="24"
@@ -162,7 +162,7 @@ function NavbarContent() {
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
           <span
-            className="font-bold text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400"
+            className="hidden sm:inline truncate font-bold text-lg md:text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400"
             style={{ fontFamily: "Syne, sans-serif" }}
           >
             Kachu Kart
@@ -171,17 +171,17 @@ function NavbarContent() {
 
         <div className="hidden md:flex items-center gap-8">
           {links.map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               className="text-sm font-medium text-gray-600 hover:text-[#2d8c5f] transition-colors dark:text-zinc-300 dark:hover:text-sky-400"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2 border border-gray-200 w-52 dark:bg-zinc-900/80 dark:border-zinc-700">
             <svg
               width="14"
@@ -274,7 +274,7 @@ function NavbarContent() {
 
       <div
         id="mobile-nav-menu"
-        className={`fixed inset-x-0 top-0 pt-20 pb-8 px-8 bg-white z-[55] shadow-xl border-b border-gray-100 dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-300 ease-in-out md:hidden ${
+        className={`fixed inset-x-0 top-0 pt-20 pb-8 px-4 sm:px-6 bg-white z-[55] shadow-xl border-b border-gray-100 dark:bg-zinc-950 dark:border-zinc-800 transition-all duration-300 ease-in-out md:hidden ${
           menuOpen
             ? "translate-y-0 opacity-100"
             : "-translate-y-full opacity-0 pointer-events-none"
@@ -320,14 +320,14 @@ function NavbarContent() {
           </div>
 
           {links.map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               onClick={() => setMenuOpen(false)}
               className="text-xl font-semibold text-gray-800 hover:text-[#2d8c5f] dark:text-zinc-200 dark:hover:text-sky-400"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
           <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
             <Link
@@ -354,7 +354,7 @@ function NavbarContent() {
 
 function NavbarFallback() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[60] flex h-16 items-center justify-between border-b border-gray-100 bg-white/90 px-8 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90" />
+    <nav className="fixed top-0 left-0 right-0 z-[60] flex h-16 items-center justify-between border-b border-gray-100 bg-white/90 px-4 sm:px-6 md:px-8 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90" />
   );
 }
 
