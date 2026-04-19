@@ -1,7 +1,8 @@
 // for fetching the factory
 
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiBaseQueryUrl } from "../config";
+import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
 export interface Factory {
     id: number;
@@ -16,8 +17,8 @@ export interface Factory {
 }
 
 export const factoryApi = createApi({
-  reducerPath: 'factoryApi', 
-  baseQuery: fetchBaseQuery({ baseUrl: apiBaseQueryUrl }),
+  reducerPath: "factoryApi",
+  baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
   endpoints: (builder) => ({
 
     getFactory:builder.query<Factory[], void>({

@@ -60,7 +60,10 @@ async function persistUploadedImage(file: File): Promise<string> {
   const filePath = path.join(uploadsDir, filename);
 
   const arrayBuffer = await file.arrayBuffer();
-  await writeFile(filePath, Buffer.from(arrayBuffer));
+  if (!(arrayBuffer instanceof ArrayBuffer)) {
+    throw new TypeError("Invalid file buffer");
+  }
+  await writeFile(filePath, Buffer.from(new Uint8Array(arrayBuffer)));
 
   return `/uploads/products/${filename}`;
 }

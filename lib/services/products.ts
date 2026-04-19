@@ -1,40 +1,32 @@
+import { cache } from "react";
 import type { Product, ProductCategory } from "@/lib/data/products";
-import { filterProductsByCategorySlug, getSeedProductCategories } from "@/lib/data/products";
-import { getCatalogSnapshot } from "@/lib/services/product-catalog";
+import {
+  allProducts,
+  filterProductsByCategorySlug,
+  getSeedProductCategories,
+} from "@/lib/data/products";
 
 /**
- * Central catalog fetch. Uses in-memory catalog (seed + admin adds); swap for API when ready.
- *
- * @example
- * ```ts
- * const res = await fetch(`${process.env.API_URL}/products`, {
- *   next: { revalidate: 60 },
- * });
- * if (!res.ok) throw new Error("Failed to load products");
- * return res.json() as Promise<Product[]>;
- * ```
+ * Catalog reads use in-repo seed data until the product API is wired for production.
+ * Deduplicated per request via React `cache()`.
  */
-export async function fetchProducts(): Promise<Product[]> {
-  return getCatalogSnapshot();
-}
+export const fetchProducts = cache(async function fetchProducts(): Promise<Product[]> {
+  return allProducts;
+});
 
 /**
- * Category list for filters (toolbar, URL validation). Replace with `fetch(\`${API}/categories\`)` when ready.
- *
- * @example
- * ```ts
- * const res = await fetch(`${process.env.API_URL}/categories`);
- * return res.json() as Promise<ProductCategory[]>;
- * ```
+ * Category list for filters — seed metadata only.
+ * Deduplicated per request via React `cache()`.
  */
-export async function fetchProductCategories(): Promise<ProductCategory[]> {
-  return [...getSeedProductCategories()];
-}
+export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
+  ProductCategory[]
+> {
+  return getSeedProductCategories();
+});
 
-export async function fetchProductById(id: number): Promise<Product | undefined> {
-  const products = await fetchProducts();
-  return products.find((p) => p.id === id);
-}
+export const fetchProductById = cache(async function fetchProductById(id: number): Promise<Product | undefined> {
+  return allProducts.find((p) => p.id === id);
+});
 
 export async function fetchProductsForCategorySlug(
   slug: string | null,

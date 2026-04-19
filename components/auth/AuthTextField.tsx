@@ -8,6 +8,12 @@ type AuthTextFieldProps = {
   autoComplete?: string;
   placeholder?: string;
   labelExtra?: React.ReactNode;
+  value?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  required?: boolean;
+  disabled?: boolean;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  pattern?: string;
 };
 
 export default function AuthTextField({
@@ -18,6 +24,12 @@ export default function AuthTextField({
   autoComplete,
   placeholder,
   labelExtra,
+  value,
+  onChange,
+  required,
+  disabled,
+  inputMode,
+  pattern,
 }: AuthTextFieldProps) {
   return (
     <div>
@@ -39,6 +51,12 @@ export default function AuthTextField({
         type={type}
         autoComplete={autoComplete}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required={required}
+        disabled={disabled}
+        inputMode={inputMode}
+        pattern={pattern}
         className={authInputClassName}
       />
     </div>

@@ -243,7 +243,7 @@ function ProductsSectionInner({
                       </span>
                     </div>
 
-                    <p className="text-[9px] sm:text-[11px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wide sm:tracking-widest">
+                    <p className="text-[9px] sm:text-[11px] text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wide sm:tracking-widest">
                       {item.quantity}
                     </p>
 
@@ -258,10 +258,11 @@ function ProductsSectionInner({
                           e.stopPropagation();
                           sendWhatsApp(item);
                         }}
-                        className="flex items-center gap-1 sm:gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-sky-600 dark:hover:bg-sky-500 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 transform active:scale-95"
+                        aria-label={`Order ${item.name} on WhatsApp`}
+                        className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-white transition-all duration-300 hover:bg-emerald-700 active:scale-95 dark:bg-sky-600 dark:hover:bg-sky-500 sm:min-w-0 sm:rounded-xl sm:px-4 sm:py-2.5"
                       >
-                        <FaWhatsapp size={14} />
-                        <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-tighter">
+                        <FaWhatsapp size={16} className="shrink-0" aria-hidden />
+                        <span className="text-[10px] font-bold uppercase tracking-tighter sm:text-xs">
                           Order
                         </span>
                       </button>
@@ -276,10 +277,10 @@ function ProductsSectionInner({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-900 dark:text-zinc-200 disabled:opacity-30 group transition-all"
+                className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black uppercase tracking-widest text-emerald-900 transition-all group disabled:opacity-40 dark:text-zinc-200"
               >
-                <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />{" "}
-                Back
+                <FiArrowLeft className="shrink-0 group-hover:-translate-x-1 transition-transform" aria-hidden />
+                <span>Back</span>
               </button>
 
               <div className="flex flex-wrap justify-center gap-2 sm:gap-4 max-w-[min(100%,280px)] sm:max-w-none">
@@ -288,10 +289,10 @@ function ProductsSectionInner({
                     type="button"
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
+                    className={`h-11 min-w-[2.75rem] rounded-xl px-2 text-xs font-black transition-all ${
                       page === safePage
                         ? "bg-emerald-600 dark:bg-sky-600 text-white shadow-lg shadow-emerald-200 dark:shadow-sky-900/50 scale-110"
-                        : "text-slate-300 dark:text-zinc-600 hover:text-emerald-600 dark:hover:text-sky-400 hover:bg-emerald-50 dark:hover:bg-zinc-800"
+                        : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-sky-300"
                     }`}
                   >
                     {page}
@@ -303,10 +304,10 @@ function ProductsSectionInner({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-900 dark:text-zinc-200 disabled:opacity-30 group transition-all"
+                className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black uppercase tracking-widest text-emerald-900 transition-all group disabled:opacity-40 dark:text-zinc-200"
               >
-                Next{" "}
-                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                <span>Next</span>
+                <FiArrowRight className="shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
               </button>
             </footer>
           </>

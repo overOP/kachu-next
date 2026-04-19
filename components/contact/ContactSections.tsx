@@ -13,13 +13,20 @@ export default function ContactSections() {
           <div className="mt-6 space-y-4">
             <div className="rounded-2xl bg-emerald-50 dark:bg-zinc-800/80 p-4 border border-emerald-100 dark:border-zinc-700">
               <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">WhatsApp</p>
-              <a href="https://wa.me/9779857043288" className="mt-1 block text-lg font-black text-emerald-950 dark:text-zinc-100">
+              <a
+                href="https://wa.me/9779857043288"
+                className="mt-1 block min-h-10 text-lg font-black text-emerald-950 dark:text-zinc-100"
+                aria-label="WhatsApp support: +977 9857043288"
+              >
                 +977 9857043288
               </a>
             </div>
             <div className="rounded-2xl bg-emerald-50 dark:bg-zinc-800/80 p-4 border border-emerald-100 dark:border-zinc-700">
               <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">Email</p>
-              <a href="mailto:support@kachukart.com" className="mt-1 block text-sm sm:text-base font-bold text-emerald-950 dark:text-zinc-100">
+              <a
+                href="mailto:support@kachukart.com"
+                className="mt-1 block min-h-10 text-sm font-bold text-emerald-950 dark:text-zinc-100 sm:text-base"
+              >
                 support@kachukart.com
               </a>
             </div>
@@ -32,7 +39,7 @@ export default function ContactSections() {
 
         <div className="rounded-3xl bg-white dark:bg-zinc-900 border border-emerald-100 dark:border-zinc-800 p-4 sm:p-8 shadow-xl shadow-emerald-900/5 dark:shadow-black/50 lg:col-span-2">
           <h2 className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-zinc-50 tracking-tight px-2 sm:px-0">FAQs</h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-zinc-400 px-2 sm:px-0">Tap a question to expand the answer.</p>
+          <p className="mt-2 px-2 text-sm text-slate-600 dark:text-zinc-300 sm:px-0">Tap a question to expand the answer.</p>
 
           <div className="mt-6 space-y-3">
             {CONTACT_FAQS.map((faq) => (
@@ -40,11 +47,13 @@ export default function ContactSections() {
                 key={faq.question}
                 className="group rounded-2xl border border-emerald-100 dark:border-zinc-800 bg-emerald-50/40 dark:bg-zinc-800/50 p-4 sm:p-5 open:bg-white dark:open:bg-zinc-950 open:shadow-md open:shadow-emerald-900/5 dark:open:shadow-black/40 transition-colors"
               >
-                <summary className="list-none cursor-pointer flex items-center justify-between gap-4">
-                  <span className="text-sm sm:text-base font-bold text-emerald-950 dark:text-zinc-100">{faq.question}</span>
-                  <span className="text-emerald-600 dark:text-sky-400 text-lg font-black transition-transform group-open:rotate-45">+</span>
+                <summary className="flex list-none cursor-pointer items-center justify-between gap-4 rounded-lg py-3 pl-1 pr-2 min-h-11">
+                  <span className="text-sm font-bold text-emerald-950 dark:text-zinc-100 sm:text-base">{faq.question}</span>
+                  <span className="text-lg font-black text-emerald-700 dark:text-sky-300 transition-transform group-open:rotate-45" aria-hidden>
+                    +
+                  </span>
                 </summary>
-                <p className="mt-3 text-sm text-slate-600 dark:text-zinc-400 leading-relaxed pr-2">{faq.answer}</p>
+                <p className="mt-1 pr-2 text-sm leading-relaxed text-slate-700 dark:text-zinc-300">{faq.answer}</p>
               </details>
             ))}
           </div>

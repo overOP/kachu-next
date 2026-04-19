@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiBaseQueryUrl } from "../config";
+import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
 export interface Factory {
   id: number;
@@ -14,8 +15,8 @@ export interface Factory {
 }
 
 export const adminFactoryApi = createApi({
-    reducerPath: 'adminFactoryApi', 
-    baseQuery: fetchBaseQuery({ baseUrl: apiBaseQueryUrl }),
+  reducerPath: "adminFactoryApi",
+  baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
     tagTypes:['Factory'],
 
     endpoints: (builder) => ({

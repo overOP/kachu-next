@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { apiBaseQueryUrl } from "../config";
+import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
 export interface Product {
   id: number;
@@ -14,8 +15,8 @@ export interface Product {
 }
 
 export const productApi = createApi({
-  reducerPath: 'productApi', 
-  baseQuery: fetchBaseQuery({ baseUrl: apiBaseQueryUrl }),
+  reducerPath: "productApi",
+  baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
       query: () => "/products",

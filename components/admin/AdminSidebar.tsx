@@ -29,9 +29,9 @@ export default function AdminSidebar() {
         </Link>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-full border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-900 transition hover:bg-emerald-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
         >
-          <FiHome className="h-3.5 w-3.5" />
+          <FiHome className="h-4 w-4 shrink-0" aria-hidden />
           View site
         </Link>
       </div>
@@ -43,10 +43,10 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition lg:w-full ${
+              className={`flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition lg:w-full ${
                 active
                   ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
-                  : "text-slate-600 hover:bg-emerald-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  : "text-slate-700 hover:bg-emerald-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden />

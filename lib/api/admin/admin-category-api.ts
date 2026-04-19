@@ -1,10 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { type Factory } from "./admin-factory-api";
 import { apiBaseQueryUrl } from "../config";
+import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
 export const categoryApi = createApi({
-  reducerPath: 'categoryApi',
-  baseQuery: fetchBaseQuery({ baseUrl: apiBaseQueryUrl }),
+  reducerPath: "categoryApi",
+  baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
   tagTypes: ['Category'],
   endpoints: (builder) => ({
 

@@ -11,7 +11,7 @@ export default function BackLink({ href, children, className = "" }: BackLinkPro
     <p className={`mt-8 text-center ${className}`}>
       <Link
         href={href}
-        className="text-sm font-semibold text-slate-500 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-sky-400 transition-colors"
+        className="inline-flex min-h-11 items-center justify-center rounded-md px-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 hover:text-emerald-700 dark:hover:text-sky-300 transition-colors"
       >
         {children}
       </Link>

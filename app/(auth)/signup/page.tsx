@@ -2,19 +2,49 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AuthShell from "@/components/auth/AuthShell";
 import AuthCard from "@/components/auth/AuthCard";
 import AuthPageHeader from "@/components/auth/AuthPageHeader";
 import AuthTextField from "@/components/auth/AuthTextField";
 import AuthPrimaryButton from "@/components/auth/AuthPrimaryButton";
 import BackLink from "@/components/ui/BackLink";
+import { useRegisterMutation } from "@/lib/api/auth/user-auth-api";
 
 export default function SignUpPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [register, { isLoading }] = useRegisterMutation();
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setMessage("");
+    setError("");
+
+    try {
+      await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      }).unwrap();
+      setMessage("Account created successfully. Redirecting to sign in...");
+      setTimeout(() => {
+        router.push("/login");
+      }, 900);
+    } catch (err: unknown) {
+      const maybeMessage =
+        typeof err === "object" &&
+        err !== null &&
+        "data" in err &&
+        typeof (err as { data?: { message?: unknown } }).data?.message === "string"
+          ? (err as { data: { message: string } }).data.message
+          : "Could not create account. Please try again.";
+      setError(maybeMessage);
+    }
   }
 
   return (
@@ -22,12 +52,22 @@ export default function SignUpPage() {
       <AuthPageHeader
         eyebrow="Join Kachu Kart"
         title="Create your account"
-        subtitle="Frontend preview — connect registration when your backend is ready."
+        subtitle="Register with your name, email, and password."
       />
 
       <AuthCard>
         <form onSubmit={handleSubmit} className="space-y-5">
-          <AuthTextField id="name" name="name" label="Full name" type="text" autoComplete="name" placeholder="Your name" />
+          <AuthTextField
+            id="name"
+            name="name"
+            label="Full name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
           <AuthTextField
             id="email"
             name="email"
@@ -35,6 +75,9 @@ export default function SignUpPage() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <AuthTextField
             id="password"
@@ -43,14 +86,9 @@ export default function SignUpPage() {
             type="password"
             autoComplete="new-password"
             placeholder="••••••••"
-          />
-          <AuthTextField
-            id="confirmPassword"
-            name="confirmPassword"
-            label="Confirm password"
-            type="password"
-            autoComplete="new-password"
-            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
 
           <label className="flex items-start gap-2 cursor-pointer select-none">
@@ -72,14 +110,21 @@ export default function SignUpPage() {
             </span>
           </label>
 
-          <AuthPrimaryButton>Create account</AuthPrimaryButton>
+          <AuthPrimaryButton disabled={isLoading}>
+            {isLoading ? "Creating account..." : "Create account"}
+          </AuthPrimaryButton>
         </form>
 
-        {submitted && (
-          <p className="mt-4 text-center text-sm text-emerald-700 dark:text-sky-300 font-medium" role="status">
-            Demo only — no account was created. Hook up your API to register users.
+        {error ? (
+          <p className="mt-4 text-center text-sm text-red-600 dark:text-red-400 font-medium" role="alert">
+            {error}
           </p>
-        )}
+        ) : null}
+        {message ? (
+          <p className="mt-4 text-center text-sm text-emerald-700 dark:text-sky-300 font-medium" role="status">
+            {message}
+          </p>
+        ) : null}
 
         <p className="mt-6 text-center text-sm text-slate-600 dark:text-zinc-400">
           Already have an account?{" "}

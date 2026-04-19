@@ -15,8 +15,9 @@ const links = [
 
 const SEARCH_DEBOUNCE_MS = 320;
 
+/** Min ~44×44px hit area (WCAG 2.5.8); inner lines stay visually compact */
 const burgerToggleClass =
-  "flex flex-col gap-[5px] p-1.5 bg-none border-none cursor-pointer md:hidden z-[70] shrink-0";
+  "flex min-h-11 min-w-11 flex-col items-center justify-center gap-[5px] rounded-lg border border-transparent bg-none p-2 cursor-pointer md:hidden z-[70] shrink-0";
 
 function BurgerLines({
   open,
@@ -131,7 +132,7 @@ function NavbarContent() {
     "block w-6 h-[1.5px] bg-[#2d8c5f] dark:bg-sky-400 transition-all duration-300 ease-in-out";
 
   const searchInputClass =
-    "bg-transparent text-sm text-gray-500 outline-none w-full placeholder-gray-400 dark:text-zinc-300 dark:placeholder-zinc-500";
+    "bg-transparent text-sm text-slate-700 outline-none w-full placeholder:text-slate-500 dark:text-zinc-200 dark:placeholder:text-zinc-400";
 
   return (
     <>
@@ -145,7 +146,8 @@ function NavbarContent() {
       >
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-2 [&_svg]:stroke-[#2d8c5f] dark:[&_svg]:stroke-sky-400"
+          aria-label="Kachu Kart home"
+          className="flex min-h-11 min-w-0 items-center gap-2 rounded-lg py-1 [&_svg]:stroke-[#2d8c5f] dark:[&_svg]:stroke-sky-400"
         >
           <svg
             width="24"
@@ -173,7 +175,7 @@ function NavbarContent() {
             <Link
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-gray-600 hover:text-[#2d8c5f] transition-colors dark:text-zinc-300 dark:hover:text-sky-400"
+              className="rounded-md px-1 py-2 text-sm font-medium text-slate-700 hover:text-[#2d8c5f] transition-colors dark:text-zinc-200 dark:hover:text-sky-400"
             >
               {item.label}
             </Link>
@@ -225,7 +227,7 @@ function NavbarContent() {
             href="/login"
             title="Login"
             aria-label="Sign in"
-            className="w-9 h-9 rounded-full bg-gray-100 hidden border border-gray-200 md:flex items-center justify-center hover:bg-gray-200 transition-colors dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-100 transition-colors hover:bg-gray-200 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 md:inline-flex"
           >
             <svg
               width="16"
@@ -323,7 +325,7 @@ function NavbarContent() {
               key={item.label}
               href={item.href}
               onClick={() => setMenuOpen(false)}
-              className="text-xl font-semibold text-gray-800 hover:text-[#2d8c5f] dark:text-zinc-200 dark:hover:text-sky-400"
+              className="block min-h-11 py-2 text-xl font-semibold text-gray-800 hover:text-[#2d8c5f] dark:text-zinc-200 dark:hover:text-sky-400"
             >
               {item.label}
             </Link>

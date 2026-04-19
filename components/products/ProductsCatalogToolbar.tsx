@@ -73,7 +73,7 @@ export default function ProductsCatalogToolbar({
           Search catalog
         </label>
         <FiSearch
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-zinc-500"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600 dark:text-zinc-400"
           aria-hidden
         />
         <input
@@ -90,7 +90,7 @@ export default function ProductsCatalogToolbar({
               submitSearch();
             }
           }}
-          className="w-full rounded-2xl border border-emerald-100 bg-white py-3.5 pl-11 pr-4 text-sm text-emerald-950 shadow-sm outline-none ring-emerald-500/20 transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-sky-500/50 dark:focus:ring-sky-500/20"
+          className="min-h-11 w-full rounded-2xl border border-emerald-100 bg-white py-3 pl-11 pr-4 text-sm text-emerald-950 shadow-sm outline-none ring-emerald-500/20 transition placeholder:text-slate-500 focus:border-emerald-300 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:border-sky-500/50 dark:focus:ring-sky-500/20"
         />
       </div>
 
@@ -106,10 +106,10 @@ export default function ProductsCatalogToolbar({
           <button
             type="button"
             onClick={() => onCategoryChange("all")}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            className={`min-h-10 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
               categorySlug === "all"
                 ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
-                : "border border-emerald-100 bg-white text-emerald-900 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-600"
+                : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
             }`}
           >
             All
@@ -119,10 +119,10 @@ export default function ProductsCatalogToolbar({
               key={slug}
               type="button"
               onClick={() => onCategoryChange(slug)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`min-h-10 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                 categorySlug === slug
                   ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
-                  : "border border-emerald-100 bg-white text-emerald-900 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-600"
+                  : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
               }`}
             >
               {label}

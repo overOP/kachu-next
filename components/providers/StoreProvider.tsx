@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { Provider } from "react-redux";
+import AppInitializer from "@/components/auth/AppInitializer";
 import { makeStore, type AppStore } from "@/lib/store";
 
 export default function StoreProvider({ children }: { children: React.ReactNode }) {
   const [store] = useState<AppStore>(() => makeStore());
 
-  return <Provider store={store}>{children}</Provider>;
+  return (
+    <Provider store={store}>
+      <AppInitializer>{children}</AppInitializer>
+    </Provider>
+  );
 }

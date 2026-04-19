@@ -1,54 +1,48 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import type { User } from "../../store/auth-slice";
-import { userAuthApiBaseUrl } from "../config";
+import { usersApiBaseUrl } from "../config";
+import { createAuthBaseQuery } from "./authBaseQuery";
+
+const baseQuery = createAuthBaseQuery({
+  baseUrl: usersApiBaseUrl,
+});
 
 export const adminAuthApi = createApi({
-  reducerPath: 'adminAuthApi',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: userAuthApiBaseUrl,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as { auth: { token: string | null } }).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['User'],
+  reducerPath: "adminAuthApi",
+  baseQuery,
+  tagTypes: ["User"],
   endpoints: (builder) => ({
     getAllUsers: builder.query<User[], void>({
-      query: () => '/all-users',
+      query: () => "/all-users",
       transformResponse: (res: { users: User[] }) => res.users,
-      providesTags: ['User'],
+      providesTags: ["User"],
     }),
-    // User by ID
     getUserById: builder.query<User, number>({
       query: (id) => `/${id}`,
       transformResponse: (res: { user: User }) => res.user,
-      providesTags: ['User'],
+      providesTags: (_result, _error, id) => [{ type: "User" as const, id }],
     }),
-    // User update (can include profile image)
     updateUser: builder.mutation<User, { id: number; formData: FormData }>({
       query: ({ id, formData }) => ({
         url: `/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: formData,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
     deleteUser: builder.mutation<void, number>({
       query: (id) => ({
         url: `/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
   }),
 });
 
-export const { 
-  useGetAllUsersQuery, 
-  useUpdateUserMutation, 
+export const {
+  useGetAllUsersQuery,
+  useUpdateUserMutation,
   useDeleteUserMutation,
   useGetUserByIdQuery,
 } = adminAuthApi;

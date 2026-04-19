@@ -63,7 +63,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-emerald-950 dark:text-zinc-100 truncate">{related.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 font-semibold">{related.price}</p>
+                        <p className="text-xs font-semibold text-slate-600 dark:text-zinc-300">{related.price}</p>
                       </div>
                     </Link>
                   ))}
@@ -82,15 +82,15 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </div>
             </div>
 
-            <p className="mt-4 text-sm font-bold text-slate-500 dark:text-zinc-400">{product.quantity}</p>
+            <p className="mt-4 text-sm font-bold text-slate-600 dark:text-zinc-300">{product.quantity}</p>
 
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-sky-600 dark:hover:bg-sky-500 text-white px-6 py-3 rounded-xl font-bold transition-colors"
+              className="mt-8 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-bold text-white transition-colors hover:bg-emerald-700 dark:bg-sky-600 dark:hover:bg-sky-500 sm:w-auto"
             >
-              <FaWhatsapp size={18} />
+              <FaWhatsapp size={18} aria-hidden />
               Order on WhatsApp
             </a>
           </div>

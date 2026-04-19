@@ -122,7 +122,7 @@ export default function HeroSlider() {
         </h1>
         <p 
           data-anim 
-          className="text-sm sm:text-base md:text-lg text-white/70 mb-6 sm:mb-10 max-w-md leading-relaxed"
+          className="text-sm sm:text-base md:text-lg text-white/85 mb-6 sm:mb-10 max-w-md leading-relaxed"
         >
           {slide.sub}
         </p>
@@ -130,7 +130,7 @@ export default function HeroSlider() {
           data-anim 
           type="button"
           onClick={() => router.push('/products')}
-          className="bg-emerald-600 hover:bg-emerald-500 dark:bg-sky-600 dark:hover:bg-sky-500 text-white px-6 sm:px-10 py-3 sm:py-4 rounded-full text-sm sm:text-base font-bold transition-all hover:scale-105 active:scale-95"
+          className="min-h-11 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105 hover:bg-emerald-500 active:scale-95 dark:bg-sky-600 dark:hover:bg-sky-500 sm:px-10 sm:py-4 sm:text-base"
         >
           {slide.cta} 
         </button>
@@ -138,26 +138,32 @@ export default function HeroSlider() {
 
       {/* Controls */}
       <div className="absolute bottom-8 left-4 right-4 sm:bottom-10 sm:left-auto sm:right-10 z-30 flex items-center justify-between sm:justify-end gap-4 sm:gap-8">
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           {HERO_SLIDES.map((_, i) => (
             i === current ? (
               <button
                 key={i}
+                type="button"
                 onClick={() => goTo(i)}
                 title={`Go to slide ${i + 1}`}
                 aria-label={`Go to slide ${i + 1}`}
                 aria-pressed="true"
-                className="h-1.5 w-10 bg-emerald-500 transition-all duration-500 rounded-full"
-              />
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2"
+              >
+                <span className="block h-1.5 w-10 rounded-full bg-emerald-400" aria-hidden />
+              </button>
             ) : (
               <button
                 key={i}
+                type="button"
                 onClick={() => goTo(i)}
                 title={`Go to slide ${i + 1}`}
                 aria-label={`Go to slide ${i + 1}`}
                 aria-pressed="false"
-                className="h-1.5 w-2 bg-white/30 transition-all duration-500 rounded-full"
-              />
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2"
+              >
+                <span className="block h-1.5 w-2 rounded-full bg-white/50" aria-hidden />
+              </button>
             )
           ))}
         </div>
@@ -168,7 +174,7 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      <div className="absolute top-5 right-4 sm:top-8 sm:right-10 z-30 text-white/40 text-[10px] sm:text-xs font-mono tracking-widest">
+      <div className="absolute right-4 top-5 z-30 font-mono text-[10px] tracking-widest text-white/70 sm:right-10 sm:top-8 sm:text-xs">
         {String(current + 1).padStart(2, '0')} / {String(HERO_SLIDES.length).padStart(2, '0')}
       </div>
     </div>
@@ -178,9 +184,10 @@ export default function HeroSlider() {
 function NavBtn({ icon, onClick, label }: { icon: string; onClick: () => void; label: string }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-label={label}
-      className="w-12 h-12 rounded-full flex items-center justify-center text-white border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/20 transition-all active:scale-90"
+      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/25 active:scale-90"
     >
       <span className="text-2xl mt-[-4px]">{icon}</span>
     </button>
