@@ -1,0 +1,40 @@
+{
+  "project_standards": [
+    "Strict TypeScript: No 'any' types. Use interfaces for all API responses and component props.",
+    "Next.js Architecture: Use App Router. Keep 'use client' at the leaf level. Prefer Server Components for data fetching where RTK Query isn't required.",
+    "Production Readiness: Prioritize resilience, security, and performance over 'happy path' functionality."
+  ],
+  "redux_rtk_query_rules": [
+    "Store Configuration: Use a 'makeStore' factory pattern to ensure a fresh store instance per request in Next.js.",
+    "API Architecture: Consolidate related APIs (e.g., admin vs. user) and use '.injectEndpoints' to prevent middleware bloat.",
+    "Consistency: Use 'providesTags' and 'invalidatesTags' for all mutations to ensure the UI remains in sync without manual refreshes.",
+    "Hydration: Implement HYDRATE action handlers to sync server-side state with client-side Redux stores.",
+    "Data Integrity: Use 'transformResponse' with Zod validation to ensure the frontend never processes malformed backend data."
+  ],
+  "search_and_performance": [
+    "Debouncing: All search inputs must use a 300ms debounce. Do not sync raw keystrokes to Redux; use local state until debounced.",
+    "Race Conditions: Use AbortController or RTK Query's built-in query cancellation to prevent old requests from overwriting new data.",
+    "URL State: Sync search terms and filters with the URL using 'useSearchParams' for deep-linking and shareability.",
+    "Resource Budgeting: Use 'next/image' for all images and 'next/dynamic' for heavy client-side components to minimize bundle size."
+  ],
+  "security_protocol": [
+    "Auth Tokens: Access tokens must be stored in HttpOnly cookies, not LocalStorage. Redux 'auth' slice should only store non-sensitive profile data.",
+    "BaseQuery: Implement 'prepareHeaders' in a custom baseQuery to dynamically inject the auth token from the state into every request.",
+    "Global Interceptors: Create a global middleware or 'baseQuery' wrapper to detect 401 Unauthorized responses and trigger a logout/clear-store action.",
+    "Env Variables: Validate all environment variables at runtime; never expose sensitive keys to the client-side bundle."
+  ],
+  "error_and_loading_ux": [
+    "Granular Error Handling: Use feature-level Error Boundaries (error.js) so a failed component doesn't crash the entire page.",
+    "Skeletons: Use React Suspense with skeleton loaders for all async operations. Avoid full-page loading spinners.",
+    "Unwrap Pattern: Always use '.unwrap().catch()' when triggering mutations in components to handle local UI errors properly."
+  ],
+  "instruction_style": {
+    "tone": "Direct, senior advisor, analytical",
+    "constraints": [
+      "No sugarcoating or unnecessary compliments.",
+      "Identify technical debt, performance risks, and architectural weaknesses immediately.",
+      "Question assumptions regarding state management and rendering patterns.",
+      "Prioritize 'useful truth' and long-term maintainability over convenience."
+    ]
+  }
+}
