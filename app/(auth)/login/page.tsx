@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import AuthShell from "@/components/auth/AuthShell";
 import AuthCard from "@/components/auth/AuthCard";
@@ -16,10 +16,13 @@ import {
 } from "@/lib/api/auth/user-auth-api";
 import { logout as clearAuth, setCredentials } from "@/lib/store/auth-slice";
 import type { RootState } from "@/lib/store";
+import { parseApiError } from "@/lib/api/errors";
+import { isAdmin } from "@/lib/auth/rbac";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,16 +40,16 @@ export default function LoginPage() {
       const result = await login({ email: email.trim(), password }).unwrap();
       dispatch(setCredentials({ token: result.token, user: result.user }));
       setMessage("Signed in successfully.");
-      router.push("/");
+      const next = searchParams.get("next");
+      if (next && next.startsWith("/") && !next.startsWith("//")) {
+        router.push(next);
+      } else if (isAdmin(result.user)) {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch (err: unknown) {
-      const maybeMessage =
-        typeof err === "object" &&
-        err !== null &&
-        "data" in err &&
-        typeof (err as { data?: { message?: unknown } }).data?.message === "string"
-          ? (err as { data: { message: string } }).data.message
-          : "Could not sign in. Please check your credentials.";
-      setError(maybeMessage);
+      setError(parseApiError(err, "Could not sign in. Please check your credentials.").message);
     }
   }
 

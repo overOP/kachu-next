@@ -2,19 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FiPlus } from "react-icons/fi";
-import type { Product, ProductCategory } from "@/lib/data/products";
+import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
+import type { Product } from "@/lib/types/api";
+import EditProductModal from "@/components/admin/EditProductModal";
+import { ProductStarRating } from "@/components/ui/StarRating";
+import {
+  useDeleteProductMutation,
+  useGetProductQuery,
+} from "@/lib/api/admin/admin-product-api";
+import { useGetCategoriesQuery } from "@/lib/api/admin/admin-category-api";
+import { parseApiError } from "@/lib/api/errors";
 import AddProductModal from "@/components/admin/AddProductModal";
 
-type AdminProductsPanelProps = {
-  products: Product[];
-  categories: ProductCategory[];
-};
-
-export default function AdminProductsPanel({ products, categories }: AdminProductsPanelProps) {
-  const router = useRouter();
+export default function AdminProductsPanel() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [actionError, setActionError] = useState("");
+  const { data: products = [], isLoading, isError, refetch } = useGetProductQuery();
+  const { data: categories = [] } = useGetCategoriesQuery();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this product? This cannot be undone.")) return;
+    setActionError("");
+    try {
+      await deleteProduct(id).unwrap();
+    } catch (err) {
+      setActionError(parseApiError(err, "Could not delete product.").message);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -24,8 +40,9 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
             Products
           </h1>
           <p className="mt-2 text-slate-600 dark:text-zinc-400">
-            {products.length} product{products.length === 1 ? "" : "s"} in the live catalog for this
-            server.
+            {isLoading
+              ? "Loading catalog…"
+              : `${products.length} product${products.length === 1 ? "" : "s"} from the API.`}
           </p>
         </header>
         <button
@@ -38,6 +55,18 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
         </button>
       </div>
 
+      {isError ? (
+        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Could not load products from the API. Check that the backend is running.
+        </p>
+      ) : null}
+
+      {actionError ? (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">
+          {actionError}
+        </p>
+      ) : null}
+
       <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -47,6 +76,7 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -59,7 +89,7 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- admin accepts arbitrary image hosts */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={p.img}
                           alt=""
@@ -79,13 +109,42 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
                     </span>
                   </td>
                   <td className="px-4 py-3 font-medium tabular-nums">{p.price}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/product/${p.id}`}
-                      className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-sky-400"
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditingProduct(p)}
+                      className="rounded-lg p-1 transition hover:bg-emerald-50 dark:hover:bg-zinc-800"
+                      title="Click to change rating"
                     >
-                      View
-                    </Link>
+                      <ProductStarRating rate={p.rate} size="sm" />
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingProduct(p)}
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 dark:text-sky-400"
+                        aria-label={`Edit ${p.name}`}
+                      >
+                        <FiEdit2 className="h-4 w-4" aria-hidden />
+                      </button>
+                      <Link
+                        href={`/product/${p.id}`}
+                        className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-sky-400"
+                      >
+                        View
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p.id)}
+                        disabled={isDeleting}
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400"
+                        aria-label={`Delete ${p.name}`}
+                      >
+                        <FiTrash2 className="h-4 w-4" aria-hidden />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -99,8 +158,19 @@ export default function AdminProductsPanel({ products, categories }: AdminProduc
         onClose={() => setModalOpen(false)}
         categories={categories}
         onSuccess={() => {
-          router.refresh();
+          refetch();
           setModalOpen(false);
+        }}
+      />
+
+      <EditProductModal
+        open={editingProduct != null}
+        product={editingProduct}
+        categories={categories}
+        onClose={() => setEditingProduct(null)}
+        onSuccess={() => {
+          refetch();
+          setEditingProduct(null);
         }}
       />
     </div>

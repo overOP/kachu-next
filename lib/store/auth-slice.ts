@@ -1,20 +1,14 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { User } from "@/lib/types/api";
 
-export interface User {
-  id: number | string;
-  name: string;
-  email: string;
-  role: string;
-  img?: string;
-  profileImage?: string;
-}
+export type { User };
 
 interface AuthState {
-
   token: string | null;
-  user: User | null; 
+  user: User | null;
   isAuthenticated: boolean;
 }
+
 const isBrowser = typeof window !== "undefined";
 
 function readStoredUser(): User | null {
@@ -36,24 +30,20 @@ const initialState: AuthState = {
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<{ token: string; user: User }>
-    ) => {
+    setCredentials: (state, action: PayloadAction<{ token: string; user: User }>) => {
       const { token, user } = action.payload;
       state.token = token;
       state.user = user;
       state.isAuthenticated = true;
 
       if (typeof window !== "undefined") {
-        localStorage.setItem('token', token);
-        localStorage.setItem('userData', JSON.stringify(user));
+        localStorage.setItem("token", token);
+        localStorage.setItem("userData", JSON.stringify(user));
       }
     },
-    /** Refresh / silent re-auth: updates token; updates user only when `user` is provided. */
     setSession: (state, action: PayloadAction<{ token: string; user?: User }>) => {
       const { token, user } = action.payload;
       if (!token) return;
@@ -74,17 +64,16 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       if (typeof window !== "undefined") {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userData');
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
       }
     },
-    // optional- for upadte data without relogging
     updateUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       if (typeof window !== "undefined") {
-        localStorage.setItem('userData', JSON.stringify(action.payload));
+        localStorage.setItem("userData", JSON.stringify(action.payload));
       }
-    }
+    },
   },
 });
 

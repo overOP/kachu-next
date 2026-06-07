@@ -1,45 +1,42 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
+import type { Product } from "@/lib/types/api";
 import { apiBaseQueryUrl } from "../config";
 import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
-export interface Product {
-  id: number;
-  name: string;
-  brand: string;
-  price: string;
-  img: string;
-  rate: string;
-  quantity: string;
-  logo: string;
-  Description: string;
-}
+export type { Product };
 
 export const productApi = createApi({
   reducerPath: "productApi",
   baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
+  tagTypes: ["Product", "Products"],
   endpoints: (builder) => ({
     getProducts: builder.query<Product[], void>({
-      query: () => "/products",
-      transformResponse: (response: { products: Product[] }) => response.products,
-
-    }),
-    
-   searchProducts: builder.query({
-      query: (searchTerm) => `/products/search?q=${searchTerm}`,
-transformResponse: (response: { products: Product[] }) => response.products,
+      query: () => "/api/products",
+      transformResponse: (response: { products: Product[] }) => response.products ?? [],
+      providesTags: [{ type: "Products", id: "LIST" }],
     }),
 
-    getProductById: builder.query({
-      query: (productId) => `/products/${productId}`,
-      transformResponse: (response: { product: Product[] }) => response.product,
+    searchProducts: builder.query<Product[], string>({
+      query: (searchTerm) => `/api/products/search?q=${encodeURIComponent(searchTerm)}`,
+      transformResponse: (response: { products: Product[] }) => response.products ?? [],
     }),
-getProductByCatagory: builder.query({
-  query: (catagoryId) => `/products/catagory/${catagoryId}`,
-  transformResponse: (response: { product: Product[] }) => response.product,
-}),
 
-  })
+    getProductById: builder.query<Product, number | string>({
+      query: (productId) => `/api/products/${productId}`,
+      transformResponse: (response: { product: Product }) => response.product,
+      providesTags: (_result, _error, id) => [{ type: "Product", id }],
+    }),
+
+    getProductsByCategory: builder.query<Product[], string | number>({
+      query: (categoryId) => `/api/products/category/${categoryId}`,
+      transformResponse: (response: { products: Product[] }) => response.products ?? [],
+    }),
+  }),
 });
 
-export const { useGetProductsQuery,useGetProductByIdQuery, useSearchProductsQuery ,useGetProductByCatagoryQuery} = productApi;
-
+export const {
+  useGetProductsQuery,
+  useGetProductByIdQuery,
+  useSearchProductsQuery,
+  useGetProductsByCategoryQuery,
+} = productApi;

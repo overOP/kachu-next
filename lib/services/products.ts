@@ -1,30 +1,50 @@
 import { cache } from "react";
-import type { Product, ProductCategory } from "@/lib/data/products";
+import type { Category, Product } from "@/lib/types/api";
+import {
+  fetchCategoriesFromApi,
+  fetchProductByIdFromApi,
+  fetchProductsFromApi,
+} from "@/lib/api/server-fetch";
 import {
   allProducts,
   filterProductsByCategorySlug,
   getSeedProductCategories,
 } from "@/lib/data/products";
 
-/**
- * Catalog reads use in-repo seed data until the product API is wired for production.
- * Deduplicated per request via React `cache()`.
- */
+async function withFallback<T>(apiCall: () => Promise<T>, fallback: () => T): Promise<T> {
+  try {
+    const result = await apiCall();
+    if (Array.isArray(result) && result.length === 0) {
+      const seed = fallback();
+      return Array.isArray(seed) && seed.length > 0 ? seed : result;
+    }
+    return result;
+  } catch {
+    return fallback();
+  }
+}
+
 export const fetchProducts = cache(async function fetchProducts(): Promise<Product[]> {
-  return allProducts;
+  return withFallback(fetchProductsFromApi, () => allProducts);
 });
 
-/**
- * Category list for filters — seed metadata only.
- * Deduplicated per request via React `cache()`.
- */
 export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
-  ProductCategory[]
+  Category[]
 > {
-  return getSeedProductCategories();
+  return withFallback(fetchCategoriesFromApi, () =>
+    getSeedProductCategories().map((c, i) => ({ ...c, id: c.slug || i }))
+  );
 });
 
-export const fetchProductById = cache(async function fetchProductById(id: number): Promise<Product | undefined> {
+export const fetchProductById = cache(async function fetchProductById(
+  id: number
+): Promise<Product | undefined> {
+  try {
+    const product = await fetchProductByIdFromApi(id);
+    if (product) return product;
+  } catch {
+    // fall through to seed
+  }
   return allProducts.find((p) => p.id === id);
 });
 
@@ -36,10 +56,7 @@ export async function fetchProductsForCategorySlug(
   return filterProductsByCategorySlug(all, slug, validSlugs);
 }
 
-export async function fetchRelatedProducts(
-  product: Product,
-  limit = 2
-): Promise<Product[]> {
+export async function fetchRelatedProducts(product: Product, limit = 2): Promise<Product[]> {
   const all = await fetchProducts();
   return all
     .filter((item) => item.id !== product.id && item.brand === product.brand)

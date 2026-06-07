@@ -10,6 +10,7 @@ import AuthTextField from "@/components/auth/AuthTextField";
 import AuthPrimaryButton from "@/components/auth/AuthPrimaryButton";
 import BackLink from "@/components/ui/BackLink";
 import { useRegisterMutation } from "@/lib/api/auth/user-auth-api";
+import { parseApiError } from "@/lib/api/errors";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -36,14 +37,7 @@ export default function SignUpPage() {
         router.push("/login");
       }, 900);
     } catch (err: unknown) {
-      const maybeMessage =
-        typeof err === "object" &&
-        err !== null &&
-        "data" in err &&
-        typeof (err as { data?: { message?: unknown } }).data?.message === "string"
-          ? (err as { data: { message: string } }).data.message
-          : "Could not create account. Please try again.";
-      setError(maybeMessage);
+      setError(parseApiError(err, "Could not create account. Please try again.").message);
     }
   }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function LoginLayout({ children }: { children: ReactNode }) {
-  return children;
+  return <Suspense fallback={null}>{children}</Suspense>;
 }

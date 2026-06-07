@@ -2,13 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
 import type { Product } from "@/lib/data/products";
+import ProductRatingCard from "@/components/product/ProductRatingCard";
 
 type ProductDetailProps = {
   product: Product;
   relatedProducts: Product[];
+  reviewAverage?: number | null;
 };
 
-export default function ProductDetail({ product, relatedProducts }: ProductDetailProps) {
+export default function ProductDetail({ product, relatedProducts, reviewAverage }: ProductDetailProps) {
   const message = `Hello! I'm interested in the following product:\n\nProduct:${product.name}\nBrand:${product.brand}\nPrice:${product.price}\nMOQ:${product.quantity}\n\nCould you please provide more details?`;
   const whatsappUrl = `https://wa.me/9779857043288?text=${encodeURIComponent(message)}`;
 
@@ -76,10 +78,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">Price</p>
                 <p className="mt-1 text-lg sm:text-2xl font-black text-emerald-950 dark:text-zinc-50">{product.price}</p>
               </div>
-              <div className="rounded-2xl bg-emerald-50 dark:bg-zinc-800/70 p-4 border border-emerald-100 dark:border-zinc-700">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">Rating</p>
-                <p className="mt-1 text-lg sm:text-2xl font-black text-emerald-950 dark:text-zinc-50">{product.rate.split("(")[0]}</p>
-              </div>
+              <ProductRatingCard product={product} reviewAverage={reviewAverage} />
             </div>
 
             <p className="mt-4 text-sm font-bold text-slate-600 dark:text-zinc-300">{product.quantity}</p>

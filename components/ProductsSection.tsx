@@ -16,6 +16,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FiArrowLeft, FiArrowRight, FiShoppingBag } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import ProductsCatalogToolbar from "@/components/products/ProductsCatalogToolbar";
+import { ProductStarRating } from "@/components/ui/StarRating";
 import {
   filterProductsByCategorySlug,
   type Product,
@@ -238,9 +239,13 @@ function ProductsSectionInner({
                       <h4 className="text-emerald-950 dark:text-zinc-100 font-bold text-sm sm:text-lg leading-tight">
                         {item.name}
                       </h4>
-                      <span className="flex items-center gap-1 text-[9px] sm:text-[11px] font-bold text-emerald-700 dark:text-sky-300 bg-emerald-50 dark:bg-zinc-800 px-1.5 sm:px-2 py-0.5 rounded-lg">
-                        ★ {item.rate.split("(")[0]}
-                      </span>
+                      <div
+                        className="shrink-0 rounded-lg bg-emerald-50 px-1.5 py-0.5 dark:bg-zinc-800"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Product rating"
+                      >
+                        <ProductStarRating rate={item.rate} size="sm" />
+                      </div>
                     </div>
 
                     <p className="text-[9px] sm:text-[11px] text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wide sm:tracking-widest">

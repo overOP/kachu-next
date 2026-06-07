@@ -1,24 +1,7 @@
-/** Category metadata for filters (from API or seed). */
-export interface ProductCategory {
-  slug: string;
-  label: string;
-}
+/** Re-export canonical types; seed data kept as offline fallback. */
+export type { Product, ProductCore, Category as ProductCategory } from "@/lib/types/api";
 
-export interface Product {
-  id: number;
-  name: string;
-  brand: string;
-  price: string;
-  img: string;
-  rate: string;
-  quantity: string;
-  logo: string;
-  Description: string;
-  /** Supplier / catalog group — must match a category slug from fetchProductCategories. */
-  categorySlug: string;
-}
-
-export type ProductCore = Omit<Product, "categorySlug">;
+import type { Product, ProductCore } from "@/lib/types/api";
 
 export const PRODUCTS_DATA: Record<string, ProductCore[]> = {
   coco: [
@@ -93,8 +76,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   nestle: "Nestlé",
 };
 
-/** Seed categories — same data source `fetchProductCategories` uses until you switch to an API. */
-export function getSeedProductCategories(): ProductCategory[] {
+export function getSeedProductCategories(): { slug: string; label: string }[] {
   return Object.keys(PRODUCTS_DATA).map((slug) => ({
     slug,
     label: CATEGORY_LABELS[slug] ?? slug,
@@ -105,10 +87,6 @@ export const allProducts: Product[] = (
   Object.entries(PRODUCTS_DATA) as [string, ProductCore[]][]
 ).flatMap(([slug, items]) => items.map((p) => ({ ...p, categorySlug: slug })));
 
-/**
- * Filter by category slug. If `validSlugs` is set and `slug` is not in it, returns `products` unchanged
- * (treats unknown URL params as “all”).
- */
 export function filterProductsByCategorySlug(
   products: Product[],
   slug: string | null,

@@ -5,17 +5,16 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { gsap } from "gsap";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "@/lib/hooks/use-auth";
 
-const links = [
+const publicLinks = [
   { label: "About", href: "/about" },
   { label: "Products", href: "/products" },
-  { label: "Admin", href: "/admin" },
   { label: "Contact", href: "/contact" },
 ];
 
 const SEARCH_DEBOUNCE_MS = 320;
 
-/** Min ~44×44px hit area (WCAG 2.5.8); inner lines stay visually compact */
 const burgerToggleClass =
   "flex min-h-11 min-w-11 flex-col items-center justify-center gap-[5px] rounded-lg border border-transparent bg-none p-2 cursor-pointer md:hidden z-[70] shrink-0";
 
@@ -44,6 +43,7 @@ function NavbarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const qFromUrl = searchParams.get("q") ?? "";
+  const { isAuthenticated, isAdmin, user } = useAuth();
 
   const navRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -52,6 +52,11 @@ function NavbarContent() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [searchValue, setSearchValue] = useState(qFromUrl);
+
+  const links = [
+    ...publicLinks,
+    ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
+  ];
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -134,6 +139,9 @@ function NavbarContent() {
   const searchInputClass =
     "bg-transparent text-sm text-slate-700 outline-none w-full placeholder:text-slate-500 dark:text-zinc-200 dark:placeholder:text-zinc-400";
 
+  const accountHref = isAuthenticated ? "/profile" : "/login";
+  const accountLabel = isAuthenticated ? user?.name ?? "Profile" : "Sign in";
+
   return (
     <>
       <nav
@@ -163,9 +171,7 @@ function NavbarContent() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span
-            className="font-syne hidden sm:inline truncate font-bold text-lg md:text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400"
-          >
+          <span className="font-syne hidden sm:inline truncate font-bold text-lg md:text-xl tracking-tight text-[#2d8c5f] dark:text-sky-400">
             Kachu Kart
           </span>
         </Link>
@@ -224,25 +230,12 @@ function NavbarContent() {
           <ThemeToggle />
 
           <Link
-            href="/login"
-            title="Login"
-            aria-label="Sign in"
-            className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-100 transition-colors hover:bg-gray-200 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 md:inline-flex"
+            href={accountHref}
+            title={accountLabel}
+            aria-label={accountLabel}
+            className="hidden h-11 max-w-[9rem] shrink-0 items-center justify-center truncate rounded-full border border-gray-200 bg-gray-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-gray-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 md:inline-flex"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#555"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="dark:stroke-zinc-300"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            {accountLabel}
           </Link>
 
           {menuOpen ? (
@@ -332,11 +325,11 @@ function NavbarContent() {
           ))}
           <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
             <Link
-              href="/login"
+              href={accountHref}
               onClick={() => setMenuOpen(false)}
               className="block w-full py-3 text-center bg-[#2d8c5f] dark:bg-sky-600 dark:hover:bg-sky-500 text-white rounded-xl font-bold transition-colors"
             >
-              Login / Sign Up
+              {isAuthenticated ? "Your profile" : "Login / Sign Up"}
             </Link>
           </div>
         </div>

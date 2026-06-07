@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import StarRating from "@/components/ui/StarRating";
+import { formatRateForApi } from "@/lib/utils/rating";
 import { createPortal } from "react-dom";
-import type { ProductCategory } from "@/lib/data/products";
-import { createProductAction, type CreateProductResult } from "@/app/admin/products/actions";
+import type { Category } from "@/lib/types/api";
+import { useAddProductsMutation } from "@/lib/api/admin/admin-product-api";
+import { parseApiError } from "@/lib/api/errors";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
 
 type AddProductModalProps = {
   open: boolean;
   onClose: () => void;
-  categories: ProductCategory[];
+  categories: Category[];
   onSuccess: () => void;
 };
 
@@ -22,12 +25,17 @@ export default function AddProductModal({
   const titleId = useId();
   const descId = useId();
   const firstFieldRef = useRef<HTMLSelectElement>(null);
-  const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<CreateProductResult | null>(null);
+  const [addProduct, { isLoading }] = useAddProductsMutation();
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [stars, setStars] = useState(5);
 
   useEffect(() => {
     if (!open) {
-      const clearId = requestAnimationFrame(() => setResult(null));
+      const clearId = requestAnimationFrame(() => {
+        setError("");
+        setFieldErrors({});
+      });
       return () => cancelAnimationFrame(clearId);
     }
     const t = requestAnimationFrame(() => firstFieldRef.current?.focus());
@@ -42,31 +50,31 @@ export default function AddProductModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isPending) onClose();
+      if (e.key === "Escape" && !isLoading) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, isPending, onClose]);
+  }, [open, isLoading, onClose]);
 
   if (typeof document === "undefined" || !open) return null;
 
-  const fieldErrors =
-    result && !result.ok && "fieldErrors" in result ? result.fieldErrors : undefined;
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setFieldErrors({});
     const form = e.currentTarget;
     const fd = new FormData(form);
-    setResult(null);
-    startTransition(async () => {
-      const res = await createProductAction(fd);
-      if (res.ok) {
-        form.reset();
-        onSuccess();
-        return;
-      }
-      setResult(res);
-    });
+    fd.set("rate", formatRateForApi(stars));
+
+    try {
+      await addProduct(fd).unwrap();
+      form.reset();
+      onSuccess();
+    } catch (err) {
+      const parsed = parseApiError(err, "Could not save the product.");
+      setError(parsed.message);
+      if (parsed.fieldErrors) setFieldErrors(parsed.fieldErrors);
+    }
   };
 
   const overlay = (
@@ -78,7 +86,7 @@ export default function AddProductModal({
         type="button"
         aria-label="Close dialog"
         className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
-        onClick={() => !isPending && onClose()}
+        onClick={() => !isLoading && onClose()}
       />
       <div
         role="dialog"
@@ -86,6 +94,7 @@ export default function AddProductModal({
         aria-labelledby={titleId}
         aria-describedby={descId}
         className="relative z-[101] max-h-[min(90vh,720px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-emerald-100 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 sm:max-w-2xl"
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -93,12 +102,12 @@ export default function AddProductModal({
               Add product
             </h2>
             <p id={descId} className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-              New products are stored in memory for this server process until you connect a database.
+              Uploads to the backend catalog via the products API.
             </p>
           </div>
           <button
             type="button"
-            onClick={() => !isPending && onClose()}
+            onClick={() => !isLoading && onClose()}
             className="rounded-lg p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             aria-label="Close"
           >
@@ -118,19 +127,19 @@ export default function AddProductModal({
                 name="categorySlug"
                 required
                 className={`mt-1.5 ${authInputClassName}`}
-                aria-describedby={fieldErrors?.categorySlug ? "err-categorySlug" : undefined}
+                aria-describedby={fieldErrors.categorySlug ? "err-categorySlug" : undefined}
                 defaultValue=""
               >
                 <option value="" disabled>
                   Select category
                 </option>
                 {categories.map((c) => (
-                  <option key={c.slug} value={c.slug}>
+                  <option key={String(c.id)} value={c.slug}>
                     {c.label}
                   </option>
                 ))}
               </select>
-              {fieldErrors?.categorySlug ? (
+              {fieldErrors.categorySlug ? (
                 <p id="err-categorySlug" className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
                   {fieldErrors.categorySlug}
                 </p>
@@ -148,7 +157,7 @@ export default function AddProductModal({
                 autoComplete="off"
                 className={`mt-1.5 ${authInputClassName}`}
               />
-              {fieldErrors?.name ? (
+              {fieldErrors.name ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.name}</p>
               ) : null}
             </div>
@@ -164,7 +173,7 @@ export default function AddProductModal({
                 autoComplete="off"
                 className={`mt-1.5 ${authInputClassName}`}
               />
-              {fieldErrors?.brand ? (
+              {fieldErrors.brand ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.brand}</p>
               ) : null}
             </div>
@@ -180,7 +189,7 @@ export default function AddProductModal({
                 placeholder="e.g. NPR 1,200"
                 className={`mt-1.5 ${authInputClassName}`}
               />
-              {fieldErrors?.price ? (
+              {fieldErrors.price ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.price}</p>
               ) : null}
             </div>
@@ -196,25 +205,21 @@ export default function AddProductModal({
                 placeholder="MOQ: 50 units"
                 className={`mt-1.5 ${authInputClassName}`}
               />
-              {fieldErrors?.quantity ? (
+              {fieldErrors.quantity ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
                   {fieldErrors.quantity}
                 </p>
               ) : null}
             </div>
             <div>
-              <label htmlFor="add-product-rate" className={authLabelClassName}>
-                Rating text
-              </label>
-              <input
-                id="add-product-rate"
-                name="rate"
-                required
-                maxLength={40}
-                placeholder='4.5(1k reviews)'
-                className={`mt-1.5 ${authInputClassName}`}
+              <StarRating
+                label="Rating"
+                value={stars}
+                onChange={setStars}
+                size="lg"
               />
-              {fieldErrors?.rate ? (
+              <input type="hidden" name="rate" value={formatRateForApi(stars)} />
+              {fieldErrors.rate ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.rate}</p>
               ) : null}
             </div>
@@ -228,10 +233,10 @@ export default function AddProductModal({
                 type="file"
                 required
                 accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-                className={`mt-1.5 block w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-zinc-100 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 dark:file:bg-sky-600 dark:hover:file:bg-sky-500`}
+                className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-slate-900 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:file:bg-sky-600 dark:hover:file:bg-sky-500"
               />
               <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">Accepted: image files up to 5MB.</p>
-              {fieldErrors?.imageFile ? (
+              {fieldErrors.imageFile ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.imageFile}</p>
               ) : null}
             </div>
@@ -248,7 +253,7 @@ export default function AddProductModal({
                 placeholder="https://…"
                 className={`mt-1.5 ${authInputClassName}`}
               />
-              {fieldErrors?.logo ? (
+              {fieldErrors.logo ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{fieldErrors.logo}</p>
               ) : null}
             </div>
@@ -264,7 +269,7 @@ export default function AddProductModal({
                 maxLength={2000}
                 className={`mt-1.5 resize-y ${authInputClassName}`}
               />
-              {fieldErrors?.Description ? (
+              {fieldErrors.Description ? (
                 <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
                   {fieldErrors.Description}
                 </p>
@@ -272,27 +277,27 @@ export default function AddProductModal({
             </div>
           </div>
 
-          {result && !result.ok && "error" in result && result.error ? (
+          {error ? (
             <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 dark:bg-red-950/40 dark:text-red-200">
-              {result.error}
+              {error}
             </p>
           ) : null}
 
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => !isPending && onClose()}
+              onClick={() => !isLoading && onClose()}
               className="rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
-              disabled={isPending}
+              disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isLoading}
               className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60 dark:bg-sky-600 dark:hover:bg-sky-500"
             >
-              {isPending ? "Saving…" : "Add product"}
+              {isLoading ? "Saving…" : "Add product"}
             </button>
           </div>
         </form>

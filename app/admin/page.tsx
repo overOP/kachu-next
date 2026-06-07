@@ -24,8 +24,7 @@ export default async function AdminDashboardPage() {
           Dashboard
         </h1>
         <p className="mt-2 text-slate-600 dark:text-zinc-400">
-          Overview of your catalog — wired to the same data layer as the storefront until your API is
-          connected.
+          Live overview of your catalog from the API — products, categories, and brands in one place.
         </p>
       </header>
 
@@ -47,6 +46,12 @@ export default async function AdminDashboardPage() {
           className="rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
           Manage categories
+        </Link>
+        <Link
+          href="/admin/users"
+          className="rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          Manage users
         </Link>
       </div>
     </div>

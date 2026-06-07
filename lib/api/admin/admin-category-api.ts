@@ -1,61 +1,65 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { type Factory } from "./admin-factory-api";
+import type { Category } from "@/lib/types/api";
 import { apiBaseQueryUrl } from "../config";
 import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
 export const categoryApi = createApi({
   reducerPath: "categoryApi",
   baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
-  tagTypes: ['Category'],
+  tagTypes: ["Category"],
   endpoints: (builder) => ({
-
-    getCategories: builder.query<Factory[], void>({
-      query: () => "/categories",
-      transformResponse: (response: { categories: Factory[] }) => response.categories,
+    getCategories: builder.query<Category[], void>({
+      query: () => "/api/categories",
+      transformResponse: (response: { categories: Category[] }) => response.categories ?? [],
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Category' as const, id })),
-              { type: 'Category', id: 'LIST' },
+              ...result.map(({ id }) => ({ type: "Category" as const, id })),
+              { type: "Category", id: "LIST" },
             ]
-          : [{ type: 'Category', id: 'LIST' }],
+          : [{ type: "Category", id: "LIST" }],
     }),
 
-    getCategoryById: builder.query<Factory, string | number>({
-      query: (id) => `/categories/${id}`,
-      transformResponse: (response: { category: Factory }) => response.category,
-      providesTags: (result, error, id) => [{ type: 'Category', id }],
+    getCategoryById: builder.query<Category, string | number>({
+      query: (id) => `/api/categories/${id}`,
+      transformResponse: (response: { category: Category }) => response.category,
+      providesTags: (_result, _error, id) => [{ type: "Category", id }],
     }),
 
-    addCategory: builder.mutation<Factory, Partial<Factory>>({
+    addCategory: builder.mutation<Category, Partial<Category>>({
       query: (newCategory) => ({
-        url: '/categories',
-        method: 'POST',
+        url: "/api/categories",
+        method: "POST",
         body: newCategory,
       }),
-      invalidatesTags: [{ type: 'Category', id: 'LIST' }],
+      transformResponse: (response: { category: Category }) => response.category,
+      invalidatesTags: [{ type: "Category", id: "LIST" }],
     }),
 
-    updateCategory: builder.mutation<Factory, { categoryId: string | number; updatedCategory: Partial<Factory> }>({
+    updateCategory: builder.mutation<
+      Category,
+      { categoryId: string | number; updatedCategory: Partial<Category> }
+    >({
       query: ({ categoryId, updatedCategory }) => ({
-        url: `/categories/${categoryId}`,
-        method: 'PUT',
+        url: `/api/categories/${categoryId}`,
+        method: "PUT",
         body: updatedCategory,
       }),
-      invalidatesTags: (result, error, { categoryId }) => [
-        { type: 'Category', id: categoryId },
-        { type: 'Category', id: 'LIST' },
+      transformResponse: (response: { category: Category }) => response.category,
+      invalidatesTags: (_result, _error, { categoryId }) => [
+        { type: "Category", id: categoryId },
+        { type: "Category", id: "LIST" },
       ],
     }),
 
     deleteCategory: builder.mutation<{ success: boolean }, string | number>({
       query: (categoryId) => ({
-        url: `/categories/${categoryId}`,
-        method: 'DELETE',
+        url: `/api/categories/${categoryId}`,
+        method: "DELETE",
       }),
-      invalidatesTags: (result, error, id) => [
-        { type: 'Category', id },
-        { type: 'Category', id: 'LIST' },
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Category", id },
+        { type: "Category", id: "LIST" },
       ],
     }),
   }),
@@ -66,5 +70,5 @@ export const {
   useGetCategoryByIdQuery,
   useAddCategoryMutation,
   useUpdateCategoryMutation,
-  useDeleteCategoryMutation
+  useDeleteCategoryMutation,
 } = categoryApi;

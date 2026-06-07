@@ -8,5 +8,7 @@ export const apiBaseQueryUrl = `${trimmedOrigin}/`;
 /** Cookie + JWT auth routes */
 export const authApiBaseUrl = `${trimmedOrigin}/api/auth`;
 
-/** User CRUD / admin user routes (not auth login/register) */
-export const usersApiBaseUrl = `${trimmedOrigin}/api/users`;
+/** User CRUD routes under auth namespace per API spec */
+export const usersApiBaseUrl = `${trimmedOrigin}/api/auth/users`;
+
+export const reviewsApiBaseUrl = `${trimmedOrigin}/api/reviews`;
