@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { refreshSession } from "@/lib/auth/refresh-session";
 import { useAppDispatch } from "@/lib/store/hooks";
-import { logout, setSession } from "@/lib/store/auth-slice";
+import { logout, readStoredUser, setSession } from "@/lib/store/auth-slice";
 
 /**
  * Restores auth from the httpOnly refresh cookie in the background.
@@ -11,6 +11,20 @@ import { logout, setSession } from "@/lib/store/auth-slice";
  */
 export default function AppInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
+
+  // Sync restore before child effects/paint so guarded routes do not flash a redirect.
+  useLayoutEffect(() => {
+    const cachedToken = localStorage.getItem("token");
+    if (!cachedToken) return;
+
+    const cachedUser = readStoredUser();
+    dispatch(
+      setSession({
+        token: cachedToken,
+        ...(cachedUser ? { user: cachedUser } : {}),
+      })
+    );
+  }, [dispatch]);
 
   useEffect(() => {
     let cancelled = false;

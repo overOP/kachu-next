@@ -9,10 +9,9 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-const isBrowser = typeof window !== "undefined";
-
-function readStoredUser(): User | null {
-  if (!isBrowser) return null;
+/** Read persisted user for client-side hydration (never call during SSR initial state). */
+export function readStoredUser(): User | null {
+  if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("userData");
   if (!raw) return null;
   try {
@@ -23,10 +22,11 @@ function readStoredUser(): User | null {
   }
 }
 
+// Always start logged-out so server HTML matches the client's first paint (avoids hydration errors).
 const initialState: AuthState = {
-  token: isBrowser ? localStorage.getItem("token") : null,
-  user: readStoredUser(),
-  isAuthenticated: isBrowser ? !!localStorage.getItem("token") : false,
+  token: null,
+  user: null,
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({

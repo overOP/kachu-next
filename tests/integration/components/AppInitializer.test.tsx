@@ -31,6 +31,28 @@ describe("AppInitializer user flow", () => {
     expect(screen.queryByText(/Restoring session/i)).not.toBeInTheDocument();
   });
 
+  it("restores cached localStorage session before refresh completes", async () => {
+    localStorage.setItem("token", "cached-token");
+    localStorage.setItem("userData", JSON.stringify(mockUser));
+    refreshSessionMock.mockReturnValue(new Promise(() => {}));
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <AppInitializer>
+          <p>Ready</p>
+        </AppInitializer>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(store.getState().auth.token).toBe("cached-token");
+      expect(store.getState().auth.user).toEqual(mockUser);
+      expect(store.getState().auth.isAuthenticated).toBe(true);
+    });
+  });
+
   it("restores session when refresh succeeds", async () => {
     refreshSessionMock.mockResolvedValue({
       ok: true,
