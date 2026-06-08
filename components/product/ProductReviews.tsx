@@ -1,28 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import type { Review } from "@/lib/types/api";
 import {
+  reviewApi,
   useCreateReviewMutation,
   useDeleteReviewMutation,
   useGetReviewsQuery,
   useUpdateReviewMutation,
 } from "@/lib/api/review-api";
+import { useAppDispatch } from "@/lib/store/hooks";
 import { canDeleteReview, canEditReview } from "@/lib/auth/rbac";
 import { parseApiError } from "@/lib/api/errors";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
 import Link from "next/link";
 import StarRating from "@/components/ui/StarRating";
+import { averageRatingFromReviews, reviewAuthor } from "@/lib/utils/product-display";
 
 type ProductReviewsProps = {
-  productId: number;
+  productId: string;
   initialReviews?: Review[];
 };
 
 export default function ProductReviews({ productId, initialReviews = [] }: ProductReviewsProps) {
+  const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAuth();
-  const { data: reviews = initialReviews, refetch } = useGetReviewsQuery({ productId });
+
+  // Hydrate RTK cache from the server render so the client does not refetch on mount.
+  useLayoutEffect(() => {
+    dispatch(
+      reviewApi.util.upsertQueryData("getReviews", { productId }, initialReviews)
+    );
+  }, [dispatch, productId, initialReviews]);
+
+  const { data: reviews = initialReviews } = useGetReviewsQuery(
+    { productId },
+    { refetchOnMountOrArgChange: false }
+  );
   const [createReview, { isLoading: isCreating }] = useCreateReviewMutation();
   const [updateReview, { isLoading: isUpdating }] = useUpdateReviewMutation();
   const [deleteReview, { isLoading: isDeleting }] = useDeleteReviewMutation();
@@ -30,11 +45,16 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
 
   const busy = isCreating || isUpdating || isDeleting;
+
+  const avgRating = useMemo(() => {
+    const avg = averageRatingFromReviews(reviews);
+    return avg > 0 ? avg.toFixed(1) : null;
+  }, [reviews]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +63,6 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
       await createReview({ productId, rating, comment: comment.trim() }).unwrap();
       setComment("");
       setRating(5);
-      refetch();
     } catch (err) {
       setError(parseApiError(err, "Could not submit review.").message);
     }
@@ -52,15 +71,14 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
   const startEdit = (review: Review) => {
     setEditingId(review.id);
     setEditRating(review.rating);
-    setEditComment(review.comment);
+    setEditComment(review.comment ?? "");
   };
 
-  const saveEdit = async (id: string | number) => {
+  const saveEdit = async (id: string) => {
     setError("");
     try {
       await updateReview({ id, rating: editRating, comment: editComment.trim() }).unwrap();
       setEditingId(null);
-      refetch();
     } catch (err) {
       setError(parseApiError(err, "Could not update review.").message);
     }
@@ -72,16 +90,10 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
     setError("");
     try {
       await deleteReview(review.id).unwrap();
-      refetch();
     } catch (err) {
       setError(parseApiError(err, "Could not delete review.").message);
     }
   };
-
-  const avgRating =
-    reviews.length > 0
-      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-      : null;
 
   return (
     <section className="mt-10 rounded-3xl border border-emerald-100 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/80 sm:p-8">
@@ -146,7 +158,7 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-emerald-950 dark:text-zinc-100">
-                      {review.userName ?? "Customer"}
+                      {reviewAuthor(review)}
                     </p>
                     <StarRating value={review.rating} readOnly size="sm" />
                   </div>
@@ -180,8 +192,11 @@ export default function ProductReviews({ productId, initialReviews = [] }: Produ
       </ul>
 
       {isAuthenticated ? (
-        <form onSubmit={handleCreate} className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 dark:border-zinc-700 dark:bg-zinc-800/40">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-800 dark:text-sky-400">
+        <form
+          onSubmit={handleCreate}
+          className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 dark:border-zinc-700 dark:bg-zinc-800/40"
+        >
+          <h3 className="text-sm font-bold tracking-wider text-emerald-800 uppercase dark:text-sky-400">
             Write a review
           </h3>
           <div className="mt-4 space-y-4">

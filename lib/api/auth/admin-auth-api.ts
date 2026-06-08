@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import type { User } from "@/lib/types/api";
+import { extractItem, extractList } from "../parse-response";
 import { usersApiBaseUrl } from "../config";
 import { createAuthBaseQuery } from "./authBaseQuery";
 
@@ -14,27 +15,32 @@ export const adminAuthApi = createApi({
   endpoints: (builder) => ({
     getAllUsers: builder.query<User[], void>({
       query: () => "",
-      transformResponse: (res: { users: User[] } | User[]) =>
-        Array.isArray(res) ? res : (res.users ?? []),
+      transformResponse: (res: unknown) => extractList<User>(res, ["users"]),
       providesTags: ["User"],
     }),
-    getUserById: builder.query<User, number | string>({
+    getUserById: builder.query<User, string>({
       query: (id) => `/${id}`,
-      transformResponse: (res: { user: User } | User) =>
-        "user" in res && res.user ? res.user : (res as User),
+      transformResponse: (res: unknown) => {
+        const user = extractItem<User>(res, ["user"]);
+        if (!user) throw new Error("User not found");
+        return user;
+      },
       providesTags: (_result, _error, id) => [{ type: "User" as const, id }],
     }),
-    updateUser: builder.mutation<User, { id: number | string; body: FormData | Record<string, unknown> }>({
+    updateUser: builder.mutation<User, { id: string; body: Record<string, unknown> }>({
       query: ({ id, body }) => ({
         url: `/${id}`,
         method: "PUT",
         body,
       }),
-      transformResponse: (res: { user: User } | User) =>
-        "user" in res && res.user ? res.user : (res as User),
+      transformResponse: (res: unknown) => {
+        const user = extractItem<User>(res, ["user"]);
+        if (!user) throw new Error("Invalid user response");
+        return user;
+      },
       invalidatesTags: ["User"],
     }),
-    deleteUser: builder.mutation<void, number | string>({
+    deleteUser: builder.mutation<void, string>({
       query: (id) => ({
         url: `/${id}`,
         method: "DELETE",

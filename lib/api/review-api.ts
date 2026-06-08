@@ -1,16 +1,12 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { Review } from "@/lib/types/api";
+import type { CreateReviewPayload, Review } from "@/lib/types/api";
+import { extractItem, extractList } from "./parse-response";
 import { apiBaseQueryUrl } from "./config";
 import { createAuthBaseQuery } from "./auth/authBaseQuery";
-
-export type CreateReviewPayload = {
-  productId: number;
-  rating: number;
-  comment: string;
-};
+import { normalizeReview, normalizeReviews } from "@/lib/utils/review-normalize";
 
 export type UpdateReviewPayload = {
-  id: number | string;
+  id: string;
   rating?: number;
   comment?: string;
 };
@@ -20,12 +16,25 @@ export const reviewApi = createApi({
   baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
   tagTypes: ["Review"],
   endpoints: (builder) => ({
-    getReviews: builder.query<Review[], { productId?: number } | void>({
+    getReviews: builder.query<Review[], { productId?: string } | void>({
       query: (arg) => {
         const productId = arg && "productId" in arg ? arg.productId : undefined;
-        return productId != null ? `/api/reviews?productId=${productId}` : "/api/reviews";
+        return productId != null
+          ? `/api/reviews?productId=${encodeURIComponent(productId)}`
+          : "/api/reviews";
       },
-      transformResponse: (response: { reviews: Review[] }) => response.reviews ?? [],
+      // Stable cache key per product — avoids duplicate entries for the same query shape.
+      serializeQueryArgs: ({ queryArgs }) => {
+        const productId =
+          queryArgs && typeof queryArgs === "object" && "productId" in queryArgs
+            ? queryArgs.productId
+            : undefined;
+        return productId ?? "all";
+      },
+      transformResponse: (response: unknown) => {
+        const raw = extractList<unknown>(response, ["reviews"]);
+        return normalizeReviews(raw);
+      },
       providesTags: (result) =>
         result
           ? [
@@ -35,9 +44,14 @@ export const reviewApi = createApi({
           : [{ type: "Review", id: "LIST" }],
     }),
 
-    getReviewById: builder.query<Review, number | string>({
+    getReviewById: builder.query<Review, string>({
       query: (id) => `/api/reviews/${id}`,
-      transformResponse: (response: { review: Review }) => response.review,
+      transformResponse: (response: unknown) => {
+        const raw = extractItem<unknown>(response, ["review"]);
+        const review = normalizeReview(raw);
+        if (!review) throw new Error("Review not found");
+        return review;
+      },
       providesTags: (_result, _error, id) => [{ type: "Review", id }],
     }),
 
@@ -47,7 +61,12 @@ export const reviewApi = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response: { review: Review }) => response.review,
+      transformResponse: (response: unknown) => {
+        const raw = extractItem<unknown>(response, ["review"]);
+        const review = normalizeReview(raw);
+        if (!review) throw new Error("Invalid review response");
+        return review;
+      },
       invalidatesTags: [{ type: "Review", id: "LIST" }],
     }),
 
@@ -57,14 +76,19 @@ export const reviewApi = createApi({
         method: "PUT",
         body,
       }),
-      transformResponse: (response: { review: Review }) => response.review,
+      transformResponse: (response: unknown) => {
+        const raw = extractItem<unknown>(response, ["review"]);
+        const review = normalizeReview(raw);
+        if (!review) throw new Error("Invalid review response");
+        return review;
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Review", id },
         { type: "Review", id: "LIST" },
       ],
     }),
 
-    deleteReview: builder.mutation<void, number | string>({
+    deleteReview: builder.mutation<void, string>({
       query: (id) => ({
         url: `/api/reviews/${id}`,
         method: "DELETE",

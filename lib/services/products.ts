@@ -5,60 +5,52 @@ import {
   fetchProductByIdFromApi,
   fetchProductsFromApi,
 } from "@/lib/api/server-fetch";
-import {
-  allProducts,
-  filterProductsByCategorySlug,
-  getSeedProductCategories,
-} from "@/lib/data/products";
+import { filterProductsByCategoryId } from "@/lib/utils/product-display";
 
-async function withFallback<T>(apiCall: () => Promise<T>, fallback: () => T): Promise<T> {
-  try {
-    const result = await apiCall();
-    if (Array.isArray(result) && result.length === 0) {
-      const seed = fallback();
-      return Array.isArray(seed) && seed.length > 0 ? seed : result;
-    }
-    return result;
-  } catch {
-    return fallback();
-  }
-}
-
-export const fetchProducts = cache(async function fetchProducts(): Promise<Product[]> {
-  return withFallback(fetchProductsFromApi, () => allProducts);
+export const fetchProducts = cache(async function fetchProducts(
+  categoryId?: string
+): Promise<Product[]> {
+  return fetchProductsFromApi(categoryId);
 });
 
 export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
   Category[]
 > {
-  return withFallback(fetchCategoriesFromApi, () =>
-    getSeedProductCategories().map((c, i) => ({ ...c, id: c.slug || i }))
-  );
+  return fetchCategoriesFromApi();
 });
 
 export const fetchProductById = cache(async function fetchProductById(
-  id: number
+  id: string
 ): Promise<Product | undefined> {
-  try {
-    const product = await fetchProductByIdFromApi(id);
-    if (product) return product;
-  } catch {
-    // fall through to seed
-  }
-  return allProducts.find((p) => p.id === id);
+  return fetchProductByIdFromApi(id);
 });
 
-export async function fetchProductsForCategorySlug(
-  slug: string | null,
-  validSlugs?: ReadonlySet<string>
+export const fetchCategoryById = cache(async function fetchCategoryById(
+  id: string
+): Promise<Category | undefined> {
+  const { fetchCategoryByIdFromApi } = await import("@/lib/api/server-fetch");
+  return fetchCategoryByIdFromApi(id);
+});
+
+export async function fetchProductsForCategoryId(
+  categoryId: string | null
 ): Promise<Product[]> {
-  const all = await fetchProducts();
-  return filterProductsByCategorySlug(all, slug, validSlugs);
+  if (!categoryId || categoryId === "all") {
+    return fetchProducts();
+  }
+  return fetchProducts(categoryId);
 }
 
-export async function fetchRelatedProducts(product: Product, limit = 2): Promise<Product[]> {
-  const all = await fetchProducts();
-  return all
-    .filter((item) => item.id !== product.id && item.brand === product.brand)
-    .slice(0, limit);
+export async function fetchRelatedProducts(
+  product: Product,
+  limit = 2
+): Promise<Product[]> {
+  // Category-scoped fetch avoids loading the entire catalog for two related items.
+  const pool = product.categoryId
+    ? await fetchProducts(product.categoryId)
+    : await fetchProducts();
+
+  return pool.filter((item) => item.id !== product.id).slice(0, limit);
 }
+
+export { filterProductsByCategoryId };

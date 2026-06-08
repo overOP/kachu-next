@@ -17,11 +17,14 @@ export default function AdminCategoriesPanel() {
   const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
 
-  const [slug, setSlug] = useState("");
-  const [label, setLabel] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState<string | number | null>(null);
-  const [editLabel, setEditLabel] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImage, setEditImage] = useState("");
 
   const busy = isAdding || isUpdating || isDeleting;
 
@@ -29,30 +32,44 @@ export default function AdminCategoriesPanel() {
     e.preventDefault();
     setError("");
     try {
-      await addCategory({ slug: slug.trim(), label: label.trim() }).unwrap();
-      setSlug("");
-      setLabel("");
+      await addCategory({
+        name: name.trim(),
+        ...(description.trim() ? { description: description.trim() } : {}),
+        ...(image.trim() ? { image: image.trim() } : {}),
+      }).unwrap();
+      setName("");
+      setDescription("");
+      setImage("");
     } catch (err) {
       setError(parseApiError(err, "Could not create category.").message);
     }
   };
 
-  const startEdit = (id: string | number, currentLabel: string) => {
+  const startEdit = (id: string, currentName: string, desc?: string | null, img?: string | null) => {
     setEditingId(id);
-    setEditLabel(currentLabel);
+    setEditName(currentName);
+    setEditDescription(desc ?? "");
+    setEditImage(img ?? "");
   };
 
-  const saveEdit = async (id: string | number) => {
+  const saveEdit = async (id: string) => {
     setError("");
     try {
-      await updateCategory({ categoryId: id, updatedCategory: { label: editLabel.trim() } }).unwrap();
+      await updateCategory({
+        categoryId: id,
+        updatedCategory: {
+          name: editName.trim(),
+          description: editDescription.trim() || undefined,
+          image: editImage.trim() || undefined,
+        },
+      }).unwrap();
       setEditingId(null);
     } catch (err) {
       setError(parseApiError(err, "Could not update category.").message);
     }
   };
 
-  const handleDelete = async (id: string | number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this category?")) return;
     setError("");
     try {
@@ -93,39 +110,49 @@ export default function AdminCategoriesPanel() {
           <FiPlus className="h-4 w-4" aria-hidden />
           Add category
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-4">
           <div>
-            <label htmlFor="cat-slug" className={authLabelClassName}>
-              Slug
+            <label htmlFor="cat-name" className={authLabelClassName}>
+              Name
             </label>
             <input
-              id="cat-slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              id="cat-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
-              pattern="[a-z0-9-]+"
               className={`mt-1.5 ${authInputClassName}`}
-              placeholder="e.g. nestle"
             />
           </div>
           <div>
-            <label htmlFor="cat-label" className={authLabelClassName}>
-              Label
+            <label htmlFor="cat-desc" className={authLabelClassName}>
+              Description (optional)
+            </label>
+            <textarea
+              id="cat-desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className={`mt-1.5 w-full resize-y ${authInputClassName}`}
+            />
+          </div>
+          <div>
+            <label htmlFor="cat-image" className={authLabelClassName}>
+              Image URL (optional)
             </label>
             <input
-              id="cat-label"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              required
+              id="cat-image"
+              type="url"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              placeholder="https://…"
               className={`mt-1.5 ${authInputClassName}`}
-              placeholder="e.g. Nestlé"
             />
           </div>
         </div>
         <button
           type="submit"
           disabled={busy}
-          className="mt-4 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 dark:bg-sky-600 dark:hover:bg-sky-500"
+          className="mt-4 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 dark:bg-sky-600"
         >
           {isAdding ? "Adding…" : "Add category"}
         </button>
@@ -133,53 +160,29 @@ export default function AdminCategoriesPanel() {
 
       <ul className="divide-y divide-emerald-100 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/80">
         {categories.map((c) => (
-          <li
-            key={String(c.id)}
-            className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-          >
+          <li key={c.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-bold text-emerald-950 dark:text-zinc-100">{c.label}</p>
-              <p className="text-xs font-mono text-slate-500 dark:text-zinc-500">{c.slug}</p>
+              <p className="font-bold text-emerald-950 dark:text-zinc-100">{c.name}</p>
+              {c.description ? (
+                <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">{c.description}</p>
+              ) : null}
+              <p className="text-xs font-mono text-slate-500 dark:text-zinc-500">{c.id}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {editingId === c.id ? (
-                <>
-                  <input
-                    value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
-                    className={`min-w-[8rem] ${authInputClassName}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => saveEdit(c.id)}
-                    disabled={busy}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                    className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-600"
-                  >
-                    Cancel
-                  </button>
-                </>
+                <div className="w-full space-y-2 sm:min-w-[16rem]">
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className={authInputClassName} placeholder="Name" />
+                  <input value={editImage} onChange={(e) => setEditImage(e.target.value)} className={authInputClassName} placeholder="Image URL" />
+                  <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} className={`w-full resize-y ${authInputClassName}`} placeholder="Description" />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => saveEdit(c.id)} disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">Save</button>
+                    <button type="button" onClick={() => setEditingId(null)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Cancel</button>
+                  </div>
+                </div>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => startEdit(c.id, c.label)}
-                    className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-900 dark:border-zinc-600 dark:text-zinc-200"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(c.id)}
-                    disabled={busy}
-                    className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400"
-                  >
+                  <button type="button" onClick={() => startEdit(c.id, c.name, c.description, c.image)} className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Edit</button>
+                  <button type="button" onClick={() => handleDelete(c.id)} disabled={busy} className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden />
                     Delete
                   </button>

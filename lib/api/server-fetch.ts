@@ -1,7 +1,10 @@
 import { API_ORIGIN } from "@/lib/api/config";
 import { parseFetchResponseError } from "@/lib/api/errors";
+import { extractItem, extractList } from "@/lib/api/parse-response";
 import type { Category, Product, Review } from "@/lib/types/api";
+import { normalizeReviews } from "@/lib/utils/review-normalize";
 
+/** ISR window for public catalog data — pages should not set `force-dynamic` unless admin-only. */
 const DEFAULT_REVALIDATE = 60;
 
 type ServerFetchOptions = {
@@ -42,51 +45,40 @@ async function serverFetch<T>(
   return body as T;
 }
 
-export async function fetchProductsFromApi(): Promise<Product[]> {
-  const data = await serverFetch<{ products: Product[] }>("/api/products");
-  return data.products ?? [];
+export async function fetchProductsFromApi(categoryId?: string): Promise<Product[]> {
+  const qs = categoryId ? `?categoryId=${encodeURIComponent(categoryId)}` : "";
+  const body = await serverFetch<unknown>(`/api/products${qs}`);
+  return extractList<Product>(body, ["products"]);
 }
 
-export async function fetchProductByIdFromApi(id: number): Promise<Product | undefined> {
+export async function fetchProductByIdFromApi(id: string): Promise<Product | undefined> {
   try {
-    const data = await serverFetch<{ product: Product }>(`/api/products/${id}`);
-    return data.product;
+    const body = await serverFetch<unknown>(`/api/products/${id}`);
+    return extractItem<Product>(body, ["product"]);
   } catch {
     return undefined;
   }
 }
 
 export async function fetchCategoriesFromApi(): Promise<Category[]> {
-  const data = await serverFetch<{ categories: Category[] }>("/api/categories");
-  return data.categories ?? [];
+  const body = await serverFetch<unknown>("/api/categories");
+  return extractList<Category>(body, ["categories"]);
 }
 
-export async function fetchCategoryByIdFromApi(
-  id: string | number
-): Promise<Category | undefined> {
+export async function fetchCategoryByIdFromApi(id: string): Promise<Category | undefined> {
   try {
-    const data = await serverFetch<{ category: Category }>(`/api/categories/${id}`);
-    return data.category;
+    const body = await serverFetch<unknown>(`/api/categories/${id}`);
+    return extractItem<Category>(body, ["category"]);
   } catch {
     return undefined;
   }
 }
 
-export async function fetchReviewsFromApi(productId?: number): Promise<Review[]> {
-  const qs = productId != null ? `?productId=${productId}` : "";
-  const data = await serverFetch<{ reviews: Review[] }>(`/api/reviews${qs}`);
-  return data.reviews ?? [];
-}
-
-export async function fetchReviewByIdFromApi(
-  id: string | number
-): Promise<Review | undefined> {
-  try {
-    const data = await serverFetch<{ review: Review }>(`/api/reviews/${id}`);
-    return data.review;
-  } catch {
-    return undefined;
-  }
+export async function fetchReviewsFromApi(productId?: string): Promise<Review[]> {
+  const qs = productId != null ? `?productId=${encodeURIComponent(productId)}` : "";
+  const body = await serverFetch<unknown>(`/api/reviews${qs}`);
+  const raw = extractList<unknown>(body, ["reviews"]);
+  return normalizeReviews(raw);
 }
 
 export async function checkHealth(): Promise<boolean> {

@@ -4,15 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import type { Product } from "@/lib/types/api";
-import EditProductModal from "@/components/admin/EditProductModal";
-import { ProductStarRating } from "@/components/ui/StarRating";
 import {
   useDeleteProductMutation,
   useGetProductQuery,
 } from "@/lib/api/admin/admin-product-api";
 import { useGetCategoriesQuery } from "@/lib/api/admin/admin-category-api";
 import { parseApiError } from "@/lib/api/errors";
+import {
+  averageRatingFromProduct,
+  productImage,
+  productMoqLabel,
+  productPriceLabel,
+} from "@/lib/utils/product-display";
+import StarRating from "@/components/ui/StarRating";
 import AddProductModal from "@/components/admin/AddProductModal";
+import EditProductModal from "@/components/admin/EditProductModal";
 
 export default function AdminProductsPanel() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -22,7 +28,10 @@ export default function AdminProductsPanel() {
   const { data: categories = [] } = useGetCategoriesQuery();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
-  const handleDelete = async (id: number) => {
+  const categoryName = (id: string) =>
+    categories.find((c) => c.id === id)?.name ?? productCategoryName(id, products);
+
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this product? This cannot be undone.")) return;
     setActionError("");
     try {
@@ -40,15 +49,13 @@ export default function AdminProductsPanel() {
             Products
           </h1>
           <p className="mt-2 text-slate-600 dark:text-zinc-400">
-            {isLoading
-              ? "Loading catalog…"
-              : `${products.length} product${products.length === 1 ? "" : "s"} from the API.`}
+            {isLoading ? "Loading catalog…" : `${products.length} product${products.length === 1 ? "" : "s"} from the API.`}
           </p>
         </header>
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 dark:bg-sky-600 dark:hover:bg-sky-500"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 dark:bg-sky-600"
         >
           <FiPlus className="h-4 w-4" aria-hidden />
           Add product
@@ -57,7 +64,7 @@ export default function AdminProductsPanel() {
 
       {isError ? (
         <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          Could not load products from the API. Check that the backend is running.
+          Could not load products. Ensure the backend is running at {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050"}.
         </p>
       ) : null}
 
@@ -69,110 +76,63 @@ export default function AdminProductsPanel() {
 
       <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-emerald-100 bg-emerald-50/80 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-sky-400">
               <tr>
                 <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3">MOQ</th>
                 <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-50 dark:divide-zinc-800">
-              {products.map((p) => (
-                <tr
-                  key={p.id}
-                  className="text-slate-700 transition hover:bg-emerald-50/50 dark:text-zinc-300 dark:hover:bg-zinc-800/40"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.img}
-                          alt=""
-                          className="h-full w-full object-contain p-0.5"
-                          loading="lazy"
-                        />
+              {products.map((p) => {
+                const avg = averageRatingFromProduct(p);
+                return (
+                  <tr key={p.id} className="text-slate-700 dark:text-zinc-300">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={productImage(p)} alt="" className="h-full w-full object-contain p-0.5" loading="lazy" />
+                        </div>
+                        <span className="font-semibold text-emerald-950 dark:text-zinc-100">{p.name}</span>
                       </div>
-                      <span className="font-semibold text-emerald-950 dark:text-zinc-100">
-                        {p.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{p.brand}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-emerald-100/80 px-2 py-0.5 text-xs font-medium text-emerald-900 dark:bg-zinc-800 dark:text-sky-300">
-                      {p.categorySlug}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium tabular-nums">{p.price}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditingProduct(p)}
-                      className="rounded-lg p-1 transition hover:bg-emerald-50 dark:hover:bg-zinc-800"
-                      title="Click to change rating"
-                    >
-                      <ProductStarRating rate={p.rate} size="sm" />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(p)}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 dark:text-sky-400"
-                        aria-label={`Edit ${p.name}`}
-                      >
-                        <FiEdit2 className="h-4 w-4" aria-hidden />
-                      </button>
-                      <Link
-                        href={`/product/${p.id}`}
-                        className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-sky-400"
-                      >
-                        View
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(p.id)}
-                        disabled={isDeleting}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400"
-                        aria-label={`Delete ${p.name}`}
-                      >
-                        <FiTrash2 className="h-4 w-4" aria-hidden />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3">{p.category?.name ?? categoryName(p.categoryId)}</td>
+                    <td className="px-4 py-3 font-medium tabular-nums">{productPriceLabel(p)}</td>
+                    <td className="px-4 py-3">{productMoqLabel(p)}</td>
+                    <td className="px-4 py-3">
+                      {avg > 0 ? <StarRating value={Math.round(avg)} readOnly size="sm" showScore={false} /> : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button type="button" onClick={() => setEditingProduct(p)} className="text-emerald-700 dark:text-sky-400" aria-label={`Edit ${p.name}`}>
+                          <FiEdit2 className="h-4 w-4" />
+                        </button>
+                        <Link href={`/product/${p.id}`} className="text-sm font-semibold text-emerald-700 underline dark:text-sky-400">View</Link>
+                        <button type="button" onClick={() => handleDelete(p.id)} disabled={isDeleting} className="text-red-600 dark:text-red-400" aria-label={`Delete ${p.name}`}>
+                          <FiTrash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      <AddProductModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        categories={categories}
-        onSuccess={() => {
-          refetch();
-          setModalOpen(false);
-        }}
-      />
-
-      <EditProductModal
-        open={editingProduct != null}
-        product={editingProduct}
-        categories={categories}
-        onClose={() => setEditingProduct(null)}
-        onSuccess={() => {
-          refetch();
-          setEditingProduct(null);
-        }}
-      />
+      <AddProductModal open={modalOpen} onClose={() => setModalOpen(false)} categories={categories} onSuccess={() => { refetch(); setModalOpen(false); }} />
+      <EditProductModal open={editingProduct != null} product={editingProduct} categories={categories} onClose={() => setEditingProduct(null)} onSuccess={() => { refetch(); setEditingProduct(null); }} />
     </div>
   );
+}
+
+function productCategoryName(id: string, products: Product[]): string {
+  const match = products.find((p) => p.categoryId === id);
+  return match?.category?.name ?? id.slice(0, 8);
 }

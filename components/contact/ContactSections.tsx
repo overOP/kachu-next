@@ -1,4 +1,5 @@
 import { CONTACT_FAQS } from "@/lib/data/contact-faqs";
+import { WHATSAPP_PHONE } from "@/lib/constants/contact";
 
 export default function ContactSections() {
   return (
@@ -14,7 +15,7 @@ export default function ContactSections() {
             <div className="rounded-2xl bg-emerald-50 dark:bg-zinc-800/80 p-4 border border-emerald-100 dark:border-zinc-700">
               <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">WhatsApp</p>
               <a
-                href="https://wa.me/9779857043288"
+                href={`https://wa.me/${WHATSAPP_PHONE}`}
                 className="mt-1 block min-h-10 text-lg font-black text-emerald-950 dark:text-zinc-100"
                 aria-label="WhatsApp support: +977 9857043288"
               >

@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { productApi } from "@/lib/api/user/product-api";
 import { adminProductApi } from "@/lib/api/admin/admin-product-api";
 import { categoryApi } from "@/lib/api/admin/admin-category-api";
 import { userAuthApi } from "@/lib/api/auth/user-auth-api";
@@ -11,7 +10,6 @@ export const makeStore = () => {
   return configureStore({
     reducer: {
       auth: authReducer,
-      [productApi.reducerPath]: productApi.reducer,
       [adminProductApi.reducerPath]: adminProductApi.reducer,
       [categoryApi.reducerPath]: categoryApi.reducer,
       [userAuthApi.reducerPath]: userAuthApi.reducer,
@@ -20,7 +18,6 @@ export const makeStore = () => {
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat([
-        productApi.middleware,
         adminProductApi.middleware,
         categoryApi.middleware,
         userAuthApi.middleware,

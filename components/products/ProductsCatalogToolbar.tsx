@@ -3,20 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiSearch } from "react-icons/fi";
-import type { ProductCategory } from "@/lib/data/products";
+import type { Category } from "@/lib/types/api";
 
 const DEBOUNCE_MS = 320;
 
 type ProductsCatalogToolbarProps = {
-  categories: ProductCategory[];
-  /** Current category from URL (`all` or a slug). */
-  categorySlug: string;
-  onCategoryChange: (slug: string) => void;
+  categories: Category[];
+  categoryId: string;
+  onCategoryChange: (categoryId: string) => void;
 };
 
 export default function ProductsCatalogToolbar({
   categories,
-  categorySlug,
+  categoryId,
   onCategoryChange,
 }: ProductsCatalogToolbarProps) {
   const router = useRouter();
@@ -81,7 +80,7 @@ export default function ProductsCatalogToolbar({
           type="search"
           enterKeyHint="search"
           autoComplete="off"
-          placeholder="Search by name, brand, or price…"
+          placeholder="Search by name or description…"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={(e) => {
@@ -98,34 +97,30 @@ export default function ProductsCatalogToolbar({
         <p className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-sky-400">
           Category
         </p>
-        <div
-          className="flex flex-wrap gap-2 sm:gap-3"
-          role="group"
-          aria-label="Filter by category"
-        >
+        <div className="flex flex-wrap gap-2 sm:gap-3" role="group" aria-label="Filter by category">
           <button
             type="button"
             onClick={() => onCategoryChange("all")}
             className={`min-h-10 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
-              categorySlug === "all"
+              categoryId === "all"
                 ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
-                : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
+                : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             }`}
           >
             All
           </button>
-          {categories.map(({ slug, label }) => (
+          {categories.map(({ id, name }) => (
             <button
-              key={slug}
+              key={id}
               type="button"
-              onClick={() => onCategoryChange(slug)}
+              onClick={() => onCategoryChange(id)}
               className={`min-h-10 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
-                categorySlug === slug
+                categoryId === id
                   ? "bg-emerald-600 text-white shadow-md dark:bg-sky-600"
-                  : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600"
+                  : "border border-emerald-100 bg-white text-emerald-950 hover:border-emerald-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               }`}
             >
-              {label}
+              {name}
             </button>
           ))}
         </div>

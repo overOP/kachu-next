@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { Product } from "@/lib/types/api";
+import type { CreateProductPayload, Product, UpdateProductPayload } from "@/lib/types/api";
+import { extractItem, extractList } from "../parse-response";
 import { apiBaseQueryUrl } from "../config";
 import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
@@ -10,36 +11,52 @@ export const adminProductApi = createApi({
   baseQuery: createAuthBaseQuery({ baseUrl: apiBaseQueryUrl }),
   tagTypes: ["Product"],
   endpoints: (builder) => ({
-    getProduct: builder.query<Product[], void>({
-      query: () => "/api/products",
+    getProduct: builder.query<Product[], { categoryId?: string } | void>({
+      query: (arg) => {
+        const categoryId = arg && "categoryId" in arg ? arg.categoryId : undefined;
+        return categoryId
+          ? `/api/products?categoryId=${encodeURIComponent(categoryId)}`
+          : "/api/products";
+      },
       providesTags: [{ type: "Product", id: "LIST" }],
-      transformResponse: (response: { products: Product[] }) => response.products ?? [],
+      transformResponse: (response: unknown) => extractList<Product>(response, ["products"]),
     }),
 
-    addProducts: builder.mutation<Product, FormData>({
-      query: (newProductFormData) => ({
+    addProducts: builder.mutation<Product, CreateProductPayload>({
+      query: (body) => ({
         url: "/api/products",
         method: "POST",
-        body: newProductFormData,
+        body,
       }),
-      transformResponse: (response: { product: Product }) => response.product,
+      transformResponse: (response: unknown) => {
+        const product = extractItem<Product>(response, ["product"]);
+        if (!product) throw new Error("Invalid product response");
+        return product;
+      },
       invalidatesTags: [{ type: "Product", id: "LIST" }],
     }),
 
-    updateProduct: builder.mutation<Product, { productId: number | string; formData: FormData }>({
-      query: ({ productId, formData }) => ({
+    updateProduct: builder.mutation<
+      Product,
+      { productId: string; body: UpdateProductPayload }
+    >({
+      query: ({ productId, body }) => ({
         url: `/api/products/${productId}`,
         method: "PUT",
-        body: formData,
+        body,
       }),
-      transformResponse: (response: { product: Product }) => response.product,
+      transformResponse: (response: unknown) => {
+        const product = extractItem<Product>(response, ["product"]);
+        if (!product) throw new Error("Invalid product response");
+        return product;
+      },
       invalidatesTags: (_result, _error, { productId }) => [
         { type: "Product", id: productId },
         { type: "Product", id: "LIST" },
       ],
     }),
 
-    deleteProduct: builder.mutation<void, number | string>({
+    deleteProduct: builder.mutation<void, string>({
       query: (productId) => ({
         url: `/api/products/${productId}`,
         method: "DELETE",

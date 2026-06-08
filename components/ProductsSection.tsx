@@ -6,40 +6,34 @@ import React, {
   useDeferredValue,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { FiArrowLeft, FiArrowRight, FiShoppingBag } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import ProductsCatalogToolbar from "@/components/products/ProductsCatalogToolbar";
-import { ProductStarRating } from "@/components/ui/StarRating";
-import {
-  filterProductsByCategorySlug,
-  type Product,
-  type ProductCategory,
-} from "@/lib/data/products";
+import ProductCard from "@/components/products/ProductCard";
+import type { Category, Product } from "@/lib/types/api";
+import { buildProductOrderMessage, buildWhatsAppUrl } from "@/lib/constants/contact";
 import { filterProductsByQuery } from "@/lib/search/filter-products";
+import {
+  filterProductsByCategoryId,
+} from "@/lib/utils/product-display";
+import { getVisiblePageNumbers } from "@/lib/utils/pagination";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+const ITEMS_PER_PAGE = 8;
 
 function ProductsSectionSkeleton() {
   return (
-    <section className="bg-emerald-50/30 dark:bg-zinc-950 py-16 sm:py-24 px-4 sm:px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12 h-10 w-2/3 max-w-md rounded-lg bg-emerald-100/80 dark:bg-zinc-800 animate-pulse" />
-        <div className="products-grid grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+    <section className="overflow-hidden bg-emerald-50/30 px-4 py-16 sm:px-6 sm:py-24 dark:bg-zinc-950">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-12 h-10 w-2/3 max-w-md animate-pulse rounded-lg bg-emerald-100/80 dark:bg-zinc-800" />
+        <div className="products-grid grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl sm:rounded-[2rem] border border-emerald-100 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/90 p-3 sm:p-4 animate-pulse"
+              className="animate-pulse rounded-2xl border border-emerald-100 bg-white p-3 sm:rounded-[2rem] sm:p-4 dark:border-zinc-700/80 dark:bg-zinc-900/90"
             >
-              <div className="aspect-square rounded-xl sm:rounded-[1.5rem] bg-slate-200 dark:bg-zinc-800" />
+              <div className="aspect-square rounded-xl bg-slate-200 sm:rounded-[1.5rem] dark:bg-zinc-800" />
               <div className="mt-4 h-4 w-3/4 rounded bg-slate-200 dark:bg-zinc-800" />
               <div className="mt-2 h-3 w-1/2 rounded bg-slate-100 dark:bg-zinc-800/80" />
             </div>
@@ -55,7 +49,7 @@ function ProductsSectionInner({
   categories,
 }: {
   products: Product[];
-  categories: ProductCategory[];
+  categories: Category[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -64,30 +58,28 @@ function ProductsSectionInner({
   const deferredQuery = useDeferredValue(query);
 
   const isCatalogPage = pathname === "/products";
-  const validCategorySlugs = useMemo(
-    () => new Set(categories.map((c) => c.slug)),
+  const validCategoryIds = useMemo(
+    () => new Set(categories.map((c) => c.id)),
     [categories]
   );
 
-  const rawCategory = searchParams.get("category");
-  const categorySlug =
+  const rawCategory = searchParams.get("categoryId");
+  const categoryId =
     isCatalogPage &&
     rawCategory &&
-    validCategorySlugs.size > 0 &&
-    validCategorySlugs.has(rawCategory)
+    validCategoryIds.size > 0 &&
+    validCategoryIds.has(rawCategory)
       ? rawCategory
       : "all";
-  const deferredCategory = useDeferredValue(categorySlug);
+  const deferredCategory = useDeferredValue(categoryId);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
 
   const replaceCategory = useCallback(
-    (slug: string) => {
+    (id: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (slug === "all") params.delete("category");
-      else params.set("category", slug);
+      if (id === "all") params.delete("categoryId");
+      else params.set("categoryId", id);
       const qs = params.toString();
       router.replace(qs ? `/products?${qs}` : "/products", { scroll: false });
     },
@@ -96,24 +88,25 @@ function ProductsSectionInner({
 
   const basePool = useMemo(() => {
     if (!isCatalogPage) return products;
-    return filterProductsByCategorySlug(
+    return filterProductsByCategoryId(
       products,
-      deferredCategory === "all" ? null : deferredCategory,
-      validCategorySlugs
+      deferredCategory === "all" ? null : deferredCategory
     );
-  }, [isCatalogPage, deferredCategory, products, validCategorySlugs]);
+  }, [isCatalogPage, deferredCategory, products]);
 
   const filteredProducts = useMemo(
     () => filterProductsByQuery(basePool, deferredQuery),
     [basePool, deferredQuery]
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+  const visiblePages = useMemo(
+    () => getVisiblePageNumbers(currentPage, totalPages),
+    [currentPage, totalPages]
+  );
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      setCurrentPage(1);
-    });
+    const id = requestAnimationFrame(() => setCurrentPage(1));
     return () => cancelAnimationFrame(id);
   }, [deferredQuery, deferredCategory]);
 
@@ -125,21 +118,22 @@ function ProductsSectionInner({
   }, [totalPages]);
 
   const safePage = Math.min(currentPage, totalPages);
-  const startIndex = (safePage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
- 
+  const sendWhatsApp = useCallback((item: Product) => {
+    const url = buildWhatsAppUrl(buildProductOrderMessage(item));
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
 
-  const sendWhatsApp = (item: Product) => {
-    const phoneNumber = "9779857043288";
-    const message = `Hello! I'm interested in the following product:\n\nProduct:${item.name}\nBrand:${item.brand}\nPrice:${item.price}\nMOQ:${item.quantity}\n\nCould you please provide more details?`;
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  };
+  const navigateToProduct = useCallback(
+    (productId: string) => router.push(`/product/${productId}`),
+    [router]
+  );
 
   const categoryLabel =
-    isCatalogPage && categorySlug !== "all"
-      ? categories.find((c) => c.slug === categorySlug)?.label ?? ""
+    isCatalogPage && categoryId !== "all"
+      ? (categories.find((c) => c.id === categoryId)?.name ?? "")
       : "";
 
   const resultLabel =
@@ -148,38 +142,35 @@ function ProductsSectionInner({
       : `Displaying ${startIndex + 1} — ${startIndex + currentProducts.length} of ${filteredProducts.length} results${categoryLabel ? ` · ${categoryLabel}` : ""}`;
 
   return (
-    <section
-      ref={containerRef}
-      className="bg-emerald-50/30 dark:bg-zinc-950 py-16 sm:py-24 px-4 sm:px-6 overflow-hidden"
-    >
-      <div className="max-w-7xl mx-auto">
+    <section className="overflow-hidden bg-emerald-50/30 px-4 py-16 sm:px-6 sm:py-24 dark:bg-zinc-950">
+      <div className="mx-auto max-w-7xl">
         <header className="mb-20">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <h3 className="text-emerald-600 dark:text-sky-400 font-bold tracking-widest uppercase text-sm mb-4">
+              <h3 className="mb-4 text-sm font-bold tracking-widest text-emerald-600 uppercase dark:text-sky-400">
                 Curated Selection
               </h3>
-              <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-emerald-950 dark:text-zinc-50 tracking-tighter">
+              <h2 className="text-3xl font-black tracking-tighter text-emerald-950 sm:text-5xl md:text-6xl dark:text-zinc-50">
                 Popular <span className="text-emerald-600 dark:text-sky-400">Products</span>
               </h2>
-              <div className="h-1.5 w-20 bg-emerald-500 dark:bg-sky-500 mt-6 rounded-full" />
+              <div className="mt-6 h-1.5 w-20 rounded-full bg-emerald-500 dark:bg-sky-500" />
             </div>
-            <p className="text-slate-500 dark:text-zinc-400 font-medium text-sm border-l-2 border-emerald-200 dark:border-zinc-700 pl-4 mb-2 max-w-md">
+            <p className="mb-2 max-w-md border-l-2 border-emerald-200 pl-4 text-sm font-medium text-slate-500 dark:border-zinc-700 dark:text-zinc-400">
               {resultLabel}
             </p>
           </div>
         </header>
 
-        {isCatalogPage && categories.length > 0 && (
+        {isCatalogPage && categories.length > 0 ? (
           <ProductsCatalogToolbar
             categories={categories}
-            categorySlug={categorySlug}
+            categoryId={categoryId}
             onCategoryChange={replaceCategory}
           />
-        )}
+        ) : null}
 
         {filteredProducts.length === 0 ? (
-          <div className="rounded-3xl border border-emerald-100 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 px-8 py-16 text-center">
+          <div className="rounded-3xl border border-emerald-100 bg-white/80 px-8 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900/60">
             <p className="text-lg font-semibold text-emerald-950 dark:text-zinc-100">
               {isCatalogPage
                 ? "No products match your filters."
@@ -199,120 +190,59 @@ function ProductsSectionInner({
           </div>
         ) : (
           <>
-            <div className="products-grid grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+            <div className="products-grid grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
               {currentProducts.map((item) => (
-                <div
+                <ProductCard
                   key={item.id}
-                  className="product-card group bg-white dark:bg-zinc-900/90 rounded-2xl sm:rounded-[2rem] p-3 sm:p-4 flex flex-col transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-900/10 dark:hover:shadow-black/50 hover:-translate-y-3 cursor-pointer border border-emerald-100 dark:border-zinc-700/80"
-                  onClick={() => router.push(`/product/${item.id}`)}
-                >
-                  <div className="relative aspect-square bg-slate-50 dark:bg-zinc-800/60 rounded-xl sm:rounded-[1.5rem] overflow-hidden flex items-center justify-center p-3 sm:p-8 transition-colors group-hover:bg-emerald-50/50 dark:group-hover:bg-zinc-800">
-                    <Image
-                      src={item.img}
-                      alt={item.name}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-contain p-2 sm:p-6 mix-blend-multiply dark:mix-blend-normal dark:drop-shadow-[0_8px_24px_rgba(255,255,255,0.12)] transition-transform duration-700 group-hover:scale-110"
-                    />
-
-                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white dark:bg-zinc-900 shadow-sm p-1 sm:p-2 rounded-lg sm:rounded-xl">
-                      <div className="relative w-4 h-4 sm:w-6 sm:h-6">
-                        <Image
-                          src={item.logo}
-                          alt={`${item.brand} logo`}
-                          fill
-                          sizes="24px"
-                          className="object-contain"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="absolute inset-0 bg-emerald-900/10 dark:bg-zinc-950/40 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center backdrop-blur-[2px]">
-                      <div className="bg-emerald-600 dark:bg-sky-600 text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform dark:hover:bg-sky-500">
-                        <FiShoppingBag /> View Details
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-6 px-1 sm:px-2 pb-1 sm:pb-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-emerald-950 dark:text-zinc-100 font-bold text-sm sm:text-lg leading-tight">
-                        {item.name}
-                      </h4>
-                      <div
-                        className="shrink-0 rounded-lg bg-emerald-50 px-1.5 py-0.5 dark:bg-zinc-800"
-                        onClick={(e) => e.stopPropagation()}
-                        title="Product rating"
-                      >
-                        <ProductStarRating rate={item.rate} size="sm" />
-                      </div>
-                    </div>
-
-                    <p className="text-[9px] sm:text-[11px] text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wide sm:tracking-widest">
-                      {item.quantity}
-                    </p>
-
-                    <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-emerald-50 dark:border-zinc-700/80 flex items-center justify-between gap-2">
-                      <span className="text-sm sm:text-xl font-black text-emerald-950 dark:text-zinc-50 tracking-tight">
-                        {item.price}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          sendWhatsApp(item);
-                        }}
-                        aria-label={`Order ${item.name} on WhatsApp`}
-                        className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-white transition-all duration-300 hover:bg-emerald-700 active:scale-95 dark:bg-sky-600 dark:hover:bg-sky-500 sm:min-w-0 sm:rounded-xl sm:px-4 sm:py-2.5"
-                      >
-                        <FaWhatsapp size={16} className="shrink-0" aria-hidden />
-                        <span className="text-[10px] font-bold uppercase tracking-tighter sm:text-xs">
-                          Order
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  product={item}
+                  onNavigate={navigateToProduct}
+                  onOrder={sendWhatsApp}
+                />
               ))}
             </div>
 
-            <footer className="mt-20 pt-10 border-t border-emerald-100 dark:border-zinc-800 flex items-center justify-between">
+            <footer className="mt-20 flex items-center justify-between border-t border-emerald-100 pt-10 dark:border-zinc-800">
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black uppercase tracking-widest text-emerald-900 transition-all group disabled:opacity-40 dark:text-zinc-200"
+                className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
               >
-                <FiArrowLeft className="shrink-0 group-hover:-translate-x-1 transition-transform" aria-hidden />
+                <FiArrowLeft className="shrink-0 transition-transform group-hover:-translate-x-1" aria-hidden />
                 <span>Back</span>
               </button>
 
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 max-w-[min(100%,280px)] sm:max-w-none">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <div className="flex max-w-[min(100%,280px)] flex-wrap justify-center gap-2 sm:max-w-none sm:gap-4">
+                {visiblePages[0] > 1 ? (
+                  <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
+                ) : null}
+                {visiblePages.map((page) => (
                   <button
                     type="button"
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`h-11 min-w-[2.75rem] rounded-xl px-2 text-xs font-black transition-all ${
                       page === safePage
-                        ? "bg-emerald-600 dark:bg-sky-600 text-white shadow-lg shadow-emerald-200 dark:shadow-sky-900/50 scale-110"
+                        ? "scale-110 bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:bg-sky-600 dark:shadow-sky-900/50"
                         : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-sky-300"
                     }`}
                   >
                     {page}
                   </button>
                 ))}
+                {visiblePages[visiblePages.length - 1] < totalPages ? (
+                  <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
+                ) : null}
               </div>
 
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black uppercase tracking-widest text-emerald-900 transition-all group disabled:opacity-40 dark:text-zinc-200"
+                className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
               >
                 <span>Next</span>
-                <FiArrowRight className="shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden />
+                <FiArrowRight className="shrink-0 transition-transform group-hover:translate-x-1" aria-hidden />
               </button>
             </footer>
           </>
@@ -327,7 +257,7 @@ export default function ProductsSection({
   categories = [],
 }: {
   products: Product[];
-  categories?: ProductCategory[];
+  categories?: Category[];
 }) {
   return (
     <Suspense fallback={<ProductsSectionSkeleton />}>

@@ -52,6 +52,87 @@ export default function StarRating({
 
   const textClass = interactive ? interactiveStarTextClass[size] : starTextClass[size];
 
+  const stars = STARS.map((star) => {
+    const filled = star <= display;
+    const selected = star <= value;
+
+    if (interactive) {
+      const starClass = `inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg leading-none transition-transform select-none hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+        filled ? "text-amber-400" : "text-slate-300 dark:text-zinc-600"
+      }`;
+      const starGlyph = <span aria-hidden>{filled ? "★" : "☆"}</span>;
+      const starLabel = `${star} star${star === 1 ? "" : "s"}`;
+
+      if (selected) {
+        return (
+          <span
+            key={star}
+            role="radio"
+            tabIndex={0}
+            aria-checked="true"
+            aria-label={starLabel}
+            onClick={(e) => handleSelect(star, e)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") handleSelect(star, e);
+            }}
+            onMouseEnter={() => setHover(star)}
+            className={starClass}
+          >
+            {starGlyph}
+          </span>
+        );
+      }
+
+      return (
+        <span
+          key={star}
+          role="radio"
+          tabIndex={0}
+          aria-checked="false"
+          aria-label={starLabel}
+          onClick={(e) => handleSelect(star, e)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") handleSelect(star, e);
+          }}
+          onMouseEnter={() => setHover(star)}
+          className={starClass}
+        >
+          {starGlyph}
+        </span>
+      );
+    }
+
+    return (
+      <span
+        key={star}
+        aria-hidden
+        className={`inline-flex shrink-0 items-center justify-center leading-none select-none ${
+          filled ? "text-amber-400" : "text-slate-300 dark:text-zinc-600"
+        }`}
+      >
+        {filled ? "★" : "☆"}
+      </span>
+    );
+  });
+
+  const score =
+    showScore && value > 0 ? (
+      <span
+        className={`font-black tabular-nums text-emerald-950 dark:text-zinc-50 ${
+          size === "sm" ? "text-sm" : size === "md" ? "text-lg sm:text-2xl" : "text-2xl"
+        }`}
+      >
+        {value}/5
+      </span>
+    ) : null;
+
+  const ratingBody = (
+    <>
+      <div className={`inline-flex max-w-full flex-wrap items-center gap-0.5 ${textClass}`}>{stars}</div>
+      {score}
+    </>
+  );
+
   return (
     <div className={className} onClick={(e) => interactive && e.stopPropagation()}>
       {label ? (
@@ -59,51 +140,24 @@ export default function StarRating({
           {label}
         </p>
       ) : null}
-      <div
-        className="flex max-w-full flex-col gap-1"
-        role={interactive ? "radiogroup" : "img"}
-        aria-label={interactive ? `Rating: ${value} of 5 stars` : `${value} out of 5 stars`}
-        onMouseLeave={() => interactive && setHover(null)}
-      >
-        <div className={`inline-flex max-w-full flex-wrap items-center gap-0.5 ${textClass}`}>
-          {STARS.map((star) => {
-            const filled = star <= display;
-            const selected = star <= value;
-            return (
-              <button
-                key={star}
-                type="button"
-                tabIndex={interactive ? 0 : -1}
-                aria-label={`${star} star${star === 1 ? "" : "s"}`}
-                aria-checked={interactive ? selected : undefined}
-                role={interactive ? "radio" : undefined}
-                onClick={(e) => interactive && handleSelect(star, e)}
-                onKeyDown={(e) => {
-                  if (!interactive) return;
-                  if (e.key === "Enter" || e.key === " ") handleSelect(star, e);
-                }}
-                onMouseEnter={() => interactive && setHover(star)}
-                className={`inline-flex shrink-0 items-center justify-center leading-none select-none ${
-                  interactive
-                    ? "min-h-11 min-w-11 cursor-pointer rounded-lg transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                    : "cursor-default pointer-events-none p-0"
-                } ${filled ? "text-amber-400" : "text-slate-300 dark:text-zinc-600"}`}
-              >
-                <span aria-hidden>{filled ? "★" : "☆"}</span>
-              </button>
-            );
-          })}
+      {interactive ? (
+        <div
+          className="flex max-w-full flex-col gap-1"
+          role="radiogroup"
+          aria-label={`Rating: ${value} of 5 stars`}
+          onMouseLeave={() => setHover(null)}
+        >
+          {ratingBody}
         </div>
-        {showScore && value > 0 ? (
-          <span
-            className={`font-black tabular-nums text-emerald-950 dark:text-zinc-50 ${
-              size === "sm" ? "text-sm" : size === "md" ? "text-lg sm:text-2xl" : "text-2xl"
-            }`}
-          >
-            {value}/5
-          </span>
-        ) : null}
-      </div>
+      ) : (
+        <div
+          className="flex max-w-full flex-col gap-1"
+          role="img"
+          aria-label={`${value} out of 5 stars`}
+        >
+          {ratingBody}
+        </div>
+      )}
       {interactive && hint !== "" ? (
         <p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-500">
           {hint ?? "Click a star to set the rating"}
@@ -130,7 +184,10 @@ export function ProductStarRating({
   hint?: string;
   showScore?: boolean;
 }) {
-  const value = parseRateValue(rate);
+  const value =
+    typeof rate === "number" && Number.isFinite(rate)
+      ? Math.min(5, Math.max(0, Math.round(rate)))
+      : parseRateValue(rate);
   if (value <= 0) return null;
   return (
     <StarRating

@@ -16,7 +16,7 @@ export default function AdminUsersPanel() {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [error, setError] = useState("");
 
-  const handleDelete = async (id: number | string) => {
+  const handleDelete = async (id: string) => {
     if (!canDeleteUser(actor, id)) return;
     if (!window.confirm("Delete this user? Only superadmins can do this.")) return;
     setError("");

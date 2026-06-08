@@ -8,14 +8,43 @@ export type ParsedApiError = {
   fieldErrors?: ApiFieldErrors;
 };
 
+/** True when an RTK Query error is HTTP 401 (e.g. missing refresh cookie). */
+export function isUnauthorizedError(error: FetchBaseQueryError | undefined): boolean {
+  if (!error) return false;
+  const status = error.status;
+  if (status === 401) return true;
+  if (typeof status === "string" && /^\d+$/.test(status) && Number(status) === 401) return true;
+  return false;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
+/** Backend error codes → user-facing copy (auth / OTP flows). */
+const BACKEND_ERROR_MESSAGES: Record<string, string> = {
+  OTP_LIMIT: "Too many attempts. Try again later.",
+  OTP_COOLDOWN: "Please wait 60 seconds before resending.",
+  USER_NOT_FOUND: "No account found with that email.",
+};
+
+export function mapBackendErrorCode(code: string): string {
+  const key = code.trim().toUpperCase();
+  return BACKEND_ERROR_MESSAGES[key] ?? code;
+}
+
 function pickMessage(data: unknown): string | undefined {
   if (!isRecord(data)) return undefined;
-  if (typeof data.message === "string" && data.message) return data.message;
-  if (typeof data.error === "string" && data.error) return data.error;
+
+  if (typeof data.code === "string" && data.code) {
+    return mapBackendErrorCode(data.code);
+  }
+  if (typeof data.message === "string" && data.message) {
+    return mapBackendErrorCode(data.message);
+  }
+  if (typeof data.error === "string" && data.error) {
+    return mapBackendErrorCode(data.error);
+  }
   if (Array.isArray(data.errors) && data.errors.length > 0) {
     const first = data.errors[0];
     if (typeof first === "string") return first;
@@ -63,6 +92,8 @@ export function parseApiError(err: unknown, fallback = "Something went wrong."):
             ? "The requested resource was not found."
             : status === "FETCH_ERROR"
               ? "Network error. Check your connection and try again."
+              : status === 429
+              ? "Too many requests. Please wait a moment and try again."
               : status === "TIMEOUT_ERROR"
                 ? "Request timed out. Please try again."
                 : fallback);
@@ -90,6 +121,8 @@ export function parseFetchResponseError(
         ? "You do not have permission."
         : res.status === 422 || res.status === 400
           ? "Validation failed. Check your input."
-          : `Request failed (${res.status}).`);
+          : res.status === 429
+            ? "Too many requests. Please wait a moment and try again."
+            : `Request failed (${res.status}).`);
   return { message, status: res.status, fieldErrors: pickFieldErrors(body) };
 }

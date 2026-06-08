@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { User } from "../../store/auth-slice";
+import type { User } from "@/lib/types/api";
+import { extractAccessToken, extractUser } from "../parse-response";
 import { authApiBaseUrl } from "../config";
 import { createAuthBaseQuery } from "./authBaseQuery";
 import { AUTH_ENDPOINTS } from "./endpoints";
@@ -22,36 +23,29 @@ const baseQuery = createAuthBaseQuery({
 
 function pickResetToken(res: unknown): string | undefined {
   if (!res || typeof res !== "object") return undefined;
+  const token = extractAccessToken(res);
+  if (token) return token;
   const r = res as Record<string, unknown>;
-  const top =
-    (typeof r.resetToken === "string" && r.resetToken) ||
-    (typeof r.token === "string" && r.token) ||
-    (typeof r.accessToken === "string" && r.accessToken) ||
-    undefined;
-  if (top) return top;
+  if (typeof r.resetToken === "string") return r.resetToken;
   const data = r.data;
-  if (data && typeof data === "object") {
-    const d = data as Record<string, unknown>;
-    if (typeof d.resetToken === "string") return d.resetToken;
-    if (typeof d.token === "string") return d.token;
+  if (data && typeof data === "object" && typeof (data as Record<string, unknown>).resetToken === "string") {
+    return (data as Record<string, unknown>).resetToken as string;
   }
   return undefined;
 }
 
+function parseAuthResult(res: unknown): { token: string; user: User } {
+  const token = extractAccessToken(res) ?? "";
+  const user = extractUser<User>(res);
+  if (!token || !user) {
+    throw new Error("Invalid auth response from server.");
+  }
+  return { token, user };
+}
+
 function parseRefreshResponse(res: unknown): RefreshResult {
-  if (!res || typeof res !== "object") {
-    return { token: "" };
-  }
-  const r = res as Record<string, unknown>;
-  const token = typeof r.token === "string" ? r.token : "";
-  const user = r.user as User | undefined;
-  const data = r.data;
-  if ((!token || !user) && data && typeof data === "object") {
-    const d = data as Record<string, unknown>;
-    const t = typeof d.token === "string" ? d.token : token;
-    const u = (d.user as User | undefined) ?? user;
-    return { token: t, ...(u !== undefined ? { user: u } : {}) };
-  }
+  const token = extractAccessToken(res) ?? "";
+  const user = extractUser<User>(res);
   return { token, ...(user !== undefined ? { user } : {}) };
 }
 
@@ -72,6 +66,7 @@ export const userAuthApi = createApi({
           body: { email: e, password: p },
         };
       },
+      transformResponse: (res: unknown) => parseAuthResult(res),
     }),
     register: builder.mutation<void, RegisterPayload>({
       query: (body) => ({
@@ -145,7 +140,6 @@ export const userAuthApi = createApi({
           method: "POST",
           body: {
             resetToken: token,
-            password: pwd,
             newPassword: pwd,
           },
         };

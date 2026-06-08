@@ -1,7 +1,6 @@
 "use client";
 
-import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/store";
+import { useAppSelector } from "@/lib/store/hooks";
 import {
   canManageUsers,
   hasMinAccess,
@@ -12,7 +11,7 @@ import {
 } from "@/lib/auth/rbac";
 
 export function useAuth() {
-  const { user, token, isAuthenticated: authed } = useSelector((s: RootState) => s.auth);
+  const { user, token, isAuthenticated: authed } = useAppSelector((s) => s.auth);
 
   return {
     user,

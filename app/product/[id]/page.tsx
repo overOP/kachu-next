@@ -3,48 +3,37 @@ import { notFound } from "next/navigation";
 import SiteShell from "@/components/layout/SiteShell";
 import ProductDetail from "@/components/product/ProductDetail";
 import Footer from "@/components/Footer";
+import ProductReviews from "@/components/product/ProductReviews";
 import { fetchProductById, fetchRelatedProducts } from "@/lib/services/products";
 import { fetchReviewsForProduct } from "@/lib/services/reviews";
-import ProductReviews from "@/components/product/ProductReviews";
+import { averageRatingFromReviews, productImage } from "@/lib/utils/product-display";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
-export async function generateMetadata({
-  params,
-}: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
-  const parsedId = Number(id);
-  const product = Number.isFinite(parsedId)
-    ? await fetchProductById(parsedId)
-    : undefined;
+  const product = await fetchProductById(id);
   if (!product) {
     return { title: "Product" };
   }
   return {
     title: product.name,
-    description: product.Description,
+    description: product.description,
     openGraph: {
       title: product.name,
-      description: product.Description,
-      images: [product.img],
+      description: product.description,
+      images: [productImage(product)],
     },
   };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const parsedId = Number(id);
-
-  if (!Number.isFinite(parsedId)) {
-    notFound();
-  }
-
-  const product = await fetchProductById(parsedId);
+  const product = await fetchProductById(id);
 
   if (!product) {
     notFound();
@@ -52,13 +41,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const [relatedProducts, reviews] = await Promise.all([
     fetchRelatedProducts(product, 2),
-    fetchReviewsForProduct(parsedId),
+    fetchReviewsForProduct(id),
   ]);
 
-  const reviewAverage =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : null;
+  const reviewAverage = averageRatingFromReviews(reviews);
 
   return (
     <SiteShell>
@@ -66,9 +52,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         product={product}
         relatedProducts={relatedProducts}
         reviewAverage={reviewAverage}
+        reviewCount={reviews.length}
       />
       <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 md:px-10">
-        <ProductReviews productId={parsedId} initialReviews={reviews} />
+        <ProductReviews productId={id} initialReviews={reviews} />
       </div>
       <Footer />
     </SiteShell>

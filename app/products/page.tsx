@@ -11,8 +11,6 @@ export const metadata: Metadata = {
     "Browse the Kachu Kart catalog — pricing, MOQs, and quick WhatsApp ordering on every product.",
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function ProductsPage() {
   const [products, categories] = await Promise.all([
     fetchProducts(),

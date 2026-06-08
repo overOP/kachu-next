@@ -10,12 +10,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [products, categories] = await Promise.all([
-    fetchProducts(),
-    fetchProductCategories(),
-  ]);
+  let products: Awaited<ReturnType<typeof fetchProducts>> = [];
+  let categories: Awaited<ReturnType<typeof fetchProductCategories>> = [];
+  let apiError = false;
 
-  const brands = new Set(products.map((p) => p.brand)).size;
+  try {
+    [products, categories] = await Promise.all([fetchProducts(), fetchProductCategories()]);
+  } catch {
+    apiError = true;
+  }
+
+  const inStock = products.filter((p) => p.stock == null || p.stock > 0).length;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -24,14 +29,20 @@ export default async function AdminDashboardPage() {
           Dashboard
         </h1>
         <p className="mt-2 text-slate-600 dark:text-zinc-400">
-          Live overview of your catalog from the API — products, categories, and brands in one place.
+          Live overview from the API at {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050"}.
         </p>
       </header>
 
+      {apiError ? (
+        <p className="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Could not reach the backend. Start the API and ensure CORS `CLIENT_URL` matches this frontend.
+        </p>
+      ) : null}
+
       <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AdminStatCard title="Products" value={products.length} hint="SKUs in catalog" />
-        <AdminStatCard title="Categories" value={categories.length} hint="Supplier groups" />
-        <AdminStatCard title="Brands" value={brands} hint="Distinct brands" />
+        <AdminStatCard title="Categories" value={categories.length} hint="Product groups" />
+        <AdminStatCard title="In stock" value={inStock} hint="Products with stock &gt; 0" />
       </div>
 
       <div className="flex flex-wrap gap-3">

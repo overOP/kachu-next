@@ -1,7 +1,8 @@
 import type { BaseQueryFn, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { authApiBaseUrl } from "../config";
-import { logout, setSession, type User } from "@/lib/store/auth-slice";
+import { refreshSession } from "@/lib/auth/refresh-session";
+import { isUnauthorizedError } from "../errors";
+import { logout, setSession } from "@/lib/store/auth-slice";
 
 type JsonBody = Record<string, unknown>;
 
@@ -57,7 +58,6 @@ function resolveRequestPath(args: FetchArg, baseUrl: string): string {
   return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-/** Do not run silent refresh for these auth flows (wrong password, etc.). */
 function shouldSkipReauth(args: FetchArg, baseUrl: string): boolean {
   const full = resolveRequestPath(args, baseUrl).toLowerCase();
   const skipFragments = [
@@ -72,66 +72,16 @@ function shouldSkipReauth(args: FetchArg, baseUrl: string): boolean {
   return skipFragments.some((frag) => full.includes(frag));
 }
 
-function isUnauthorized(result: { error?: FetchBaseQueryError }): boolean {
-  if (!result.error) return false;
-  const s = result.error.status;
-  if (s === 401) return true;
-  if (typeof s === "string" && /^\d+$/.test(s) && Number(s) === 401) return true;
-  return false;
-}
-
-function extractTokenFromRefresh(json: unknown): string | undefined {
-  if (!json || typeof json !== "object") return undefined;
-  const r = json as Record<string, unknown>;
-  if (typeof r.token === "string" && r.token) return r.token;
-  const data = r.data;
-  if (data && typeof data === "object" && typeof (data as Record<string, unknown>).token === "string") {
-    return (data as Record<string, unknown>).token as string;
-  }
-  return undefined;
-}
-
-function extractUserFromRefresh(json: unknown): User | undefined {
-  if (!json || typeof json !== "object") return undefined;
-  const r = json as Record<string, unknown>;
-  if (r.user && typeof r.user === "object") return r.user as User;
-  const data = r.data;
-  if (data && typeof data === "object" && (data as Record<string, unknown>).user) {
-    return (data as Record<string, unknown>).user as User;
-  }
-  return undefined;
-}
-
-let refreshInFlight: Promise<boolean> | null = null;
-
-/**
- * Cookie-only refresh to avoid circular RTK baseQuery → refresh mutation.
- * Dispatches `setSession` with new access token (and user when present).
- */
-function runSilentRefresh(dispatch: (action: unknown) => void): Promise<boolean> {
-  if (!refreshInFlight) {
-    refreshInFlight = (async () => {
-      try {
-        const res = await fetch(`${authApiBaseUrl}/refresh`, {
-          method: "POST",
-          credentials: "include",
-          headers: { Accept: "application/json" },
-        });
-        if (!res.ok) return false;
-        const json: unknown = await res.json().catch(() => null);
-        const token = extractTokenFromRefresh(json);
-        if (!token) return false;
-        const user = extractUserFromRefresh(json);
-        dispatch(setSession({ token, ...(user !== undefined ? { user } : {}) }));
-        return true;
-      } catch {
-        return false;
-      } finally {
-        refreshInFlight = null;
-      }
-    })();
-  }
-  return refreshInFlight;
+async function runSilentRefresh(dispatch: (action: unknown) => void): Promise<boolean> {
+  const result = await refreshSession();
+  if (!result.ok) return false;
+  dispatch(
+    setSession({
+      token: result.token,
+      ...(result.user ? { user: result.user } : {}),
+    })
+  );
+  return true;
 }
 
 function wrapReauth(
@@ -141,7 +91,7 @@ function wrapReauth(
   return async (args, api, extraOptions) => {
     const result = await normalizedQuery(args, api, extraOptions);
 
-    if (!isUnauthorized(result)) {
+    if (!isUnauthorizedError(result.error)) {
       return result;
     }
     if (shouldSkipReauth(args, baseUrl)) {
@@ -161,13 +111,6 @@ function wrapReauth(
   };
 }
 
-/**
- * RTK Query base query with:
- * - `credentials: "include"` (HttpOnly cookies)
- * - `Authorization: Bearer <token>` from Redux `auth.token`
- * - JSON body normalization (strip undefined, default `{}` for mutating methods)
- * - On **401**: silent `/api/auth/refresh`, retry once; on refresh failure → `logout()` + redirect `/login`
- */
 export function createAuthBaseQuery(
   options: FetchBaseQueryOptions
 ): BaseQueryFn<FetchArg, unknown, FetchBaseQueryError> {
@@ -185,6 +128,16 @@ export function createAuthBaseQuery(
       }
       if (typeof headers.get === "function" && !headers.get("Accept")) {
         headers.set("Accept", "application/json");
+      }
+      if (
+        typeof headers.get === "function" &&
+        !headers.get("Content-Type") &&
+        init.arg &&
+        typeof init.arg === "object" &&
+        "body" in init.arg &&
+        isPlainJsonBody((init.arg as { body?: unknown }).body)
+      ) {
+        headers.set("Content-Type", "application/json");
       }
       return headers;
     },
