@@ -7,6 +7,7 @@ import { useUpdateProductMutation } from "@/lib/api/admin/admin-product-api";
 import { parseApiError } from "@/lib/api/errors";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
 import ImageFileField from "@/components/admin/ImageFileField";
+import { normalizeProductImages } from "@/lib/utils/normalize-product";
 
 type EditProductModalProps = {
   open: boolean;
@@ -32,7 +33,7 @@ function productFormDefaults(product: Product) {
     minimumOrder: String(product.minimumOrder),
     stock: product.stock != null ? String(product.stock) : "",
     categoryId: product.categoryId,
-    imageUrl: product.images?.[0] ?? "",
+    imageUrl: normalizeProductImages(product.images)[0] ?? "",
     isActive: product.isActive !== false,
   };
 }

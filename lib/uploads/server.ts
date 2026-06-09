@@ -1,7 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { getSiteUrl } from "@/lib/config/site-url";
 import {
   CATALOG_DIR,
   CATALOG_BASENAME,
@@ -34,10 +33,10 @@ function extFromMime(mime: string): string {
   }
 }
 
+/** Site-relative URL for files in /public (works with next/image and any deployment host). */
 export function toPublicUploadUrl(relativePath: string): string {
-  const base = getSiteUrl();
   const normalized = relativePath.replace(/^\/+/, "");
-  return `${base}/${normalized}`;
+  return `/${normalized}`;
 }
 
 async function ensureDir(dir: string) {

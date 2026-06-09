@@ -30,7 +30,9 @@ function readItem<T>(obj: unknown, keys: string[]): T | undefined {
 /** Extract a list from common API envelope shapes. */
 export function extractList<T>(res: unknown, keys: string[]): T[] {
   if (Array.isArray(res)) return res as T[];
-  const fromData = readArray<T>(unwrapData(res), keys);
+  const unwrapped = unwrapData(res);
+  if (Array.isArray(unwrapped)) return unwrapped as T[];
+  const fromData = readArray<T>(unwrapped, keys);
   if (fromData) return fromData;
   return readArray<T>(res, keys) ?? [];
 }

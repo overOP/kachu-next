@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import type { CreateProductPayload, Product, UpdateProductPayload } from "@/lib/types/api";
 import { extractItem, extractList } from "../parse-response";
+import { normalizeProduct, normalizeProducts } from "@/lib/utils/normalize-product";
 import { apiBaseQueryUrl } from "../config";
 import { createAuthBaseQuery } from "../auth/authBaseQuery";
 
@@ -19,7 +20,8 @@ export const adminProductApi = createApi({
           : "/api/products";
       },
       providesTags: [{ type: "Product", id: "LIST" }],
-      transformResponse: (response: unknown) => extractList<Product>(response, ["products"]),
+      transformResponse: (response: unknown) =>
+        normalizeProducts(extractList<Product>(response, ["products"])),
     }),
 
     addProducts: builder.mutation<Product, CreateProductPayload>({
@@ -31,7 +33,7 @@ export const adminProductApi = createApi({
       transformResponse: (response: unknown) => {
         const product = extractItem<Product>(response, ["product"]);
         if (!product) throw new Error("Invalid product response");
-        return product;
+        return normalizeProduct(product);
       },
       invalidatesTags: [{ type: "Product", id: "LIST" }],
     }),
@@ -48,7 +50,7 @@ export const adminProductApi = createApi({
       transformResponse: (response: unknown) => {
         const product = extractItem<Product>(response, ["product"]);
         if (!product) throw new Error("Invalid product response");
-        return product;
+        return normalizeProduct(product);
       },
       invalidatesTags: (_result, _error, { productId }) => [
         { type: "Product", id: productId },

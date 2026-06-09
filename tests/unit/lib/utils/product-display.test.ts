@@ -42,6 +42,15 @@ describe("productImages", () => {
   it("returns category image array when product images empty", () => {
     expect(productImages(mockProductTwo)).toEqual([mockCategory.image!]);
   });
+
+  it("parses JSON-string image arrays from the API", () => {
+    const product = {
+      ...mockProduct,
+      images: '["http://localhost:3000/uploads/products/a.png"]' as unknown as string[],
+    };
+    expect(productImages(product)).toEqual(["/uploads/products/a.png"]);
+    expect(productImage(product)).toBe("/uploads/products/a.png");
+  });
 });
 
 describe("productPriceLabel", () => {

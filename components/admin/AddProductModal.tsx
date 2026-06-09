@@ -2,25 +2,26 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Category } from "@/lib/types/api";
 import { useAddProductsMutation } from "@/lib/api/admin/admin-product-api";
+import { useGetCategoriesQuery } from "@/lib/api/admin/admin-category-api";
 import { parseApiError } from "@/lib/api/errors";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
 import ImageFileField from "@/components/admin/ImageFileField";
+import QuickAddCategoryField from "@/components/admin/QuickAddCategoryField";
 
 type AddProductModalProps = {
   open: boolean;
   onClose: () => void;
-  categories: Category[];
   onSuccess: () => void;
 };
 
 export default function AddProductModal({
   open,
   onClose,
-  categories,
   onSuccess,
 }: AddProductModalProps) {
+  const { data: categories = [], isLoading: categoriesLoading, isError: categoriesError, refetch } =
+    useGetCategoriesQuery(undefined, { skip: !open });
   const titleId = useId();
   const firstFieldRef = useRef<HTMLSelectElement>(null);
   const [addProduct, { isLoading }] = useAddProductsMutation();
@@ -33,6 +34,11 @@ export default function AddProductModal({
   const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    void refetch();
+  }, [open, refetch]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,7 +126,7 @@ export default function AddProductModal({
           Add product
         </h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-          Upload a product image or paste a URL — the image is stored here and saved to the API as a link.
+          Choose a category from the API or create one here (POST /api/categories), then add the product.
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -135,10 +141,11 @@ export default function AddProductModal({
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 required
+                disabled={categoriesLoading}
                 className={`mt-1.5 ${authInputClassName}`}
               >
                 <option value="" disabled>
-                  Select category
+                  {categoriesLoading ? "Loading categories…" : "Select category"}
                 </option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -146,6 +153,16 @@ export default function AddProductModal({
                   </option>
                 ))}
               </select>
+              {categoriesError ? (
+                <p className="mt-2 text-xs text-red-700 dark:text-red-300">
+                  Could not load categories from GET /api/categories.
+                </p>
+              ) : null}
+              <QuickAddCategoryField
+                categories={categories}
+                onCreated={setCategoryId}
+                disabled={isLoading || categoriesLoading}
+              />
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="add-name" className={authLabelClassName}>

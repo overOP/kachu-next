@@ -38,6 +38,12 @@ describe("extractList", () => {
     ]);
   });
 
+  it("extracts a bare array from data envelope", () => {
+    expect(extractList({ message: "ok", data: [mockProduct] }, ["products"])).toEqual([
+      mockProduct,
+    ]);
+  });
+
   it("returns empty array when key is missing", () => {
     expect(extractList({ message: "ok" }, ["products"])).toEqual([]);
   });

@@ -20,6 +20,7 @@ import StarRating from "@/components/ui/StarRating";
 import AddProductModal from "@/components/admin/AddProductModal";
 import EditProductModal from "@/components/admin/EditProductModal";
 import CatalogUploadSection from "@/components/admin/CatalogUploadSection";
+import AdminProductsCategoriesSection from "@/components/admin/AdminProductsCategoriesSection";
 
 export default function AdminProductsPanel() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -78,7 +79,8 @@ export default function AdminProductsPanel() {
         </p>
       ) : null}
 
-      <div className="mb-8">
+      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+        <AdminProductsCategoriesSection />
         <CatalogUploadSection compact />
       </div>
 
@@ -175,7 +177,7 @@ export default function AdminProductsPanel() {
         </div>
       </div>
 
-      <AddProductModal open={modalOpen} onClose={() => setModalOpen(false)} categories={categories} onSuccess={() => { refetch(); setModalOpen(false); }} />
+      <AddProductModal open={modalOpen} onClose={() => setModalOpen(false)} onSuccess={() => { refetch(); setModalOpen(false); }} />
       <EditProductModal open={editingProduct != null} product={editingProduct} categories={categories} onClose={() => setEditingProduct(null)} onSuccess={() => { refetch(); setEditingProduct(null); }} />
     </div>
   );

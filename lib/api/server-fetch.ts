@@ -2,6 +2,7 @@ import { API_ORIGIN } from "@/lib/api/config";
 import { parseFetchResponseError } from "@/lib/api/errors";
 import { extractItem, extractList } from "@/lib/api/parse-response";
 import type { Category, Product, Review } from "@/lib/types/api";
+import { normalizeProduct, normalizeProducts } from "@/lib/utils/normalize-product";
 import { normalizeReviews } from "@/lib/utils/review-normalize";
 
 /** ISR window for public catalog data — pages should not set `force-dynamic` unless admin-only. */
@@ -48,13 +49,14 @@ async function serverFetch<T>(
 export async function fetchProductsFromApi(categoryId?: string): Promise<Product[]> {
   const qs = categoryId ? `?categoryId=${encodeURIComponent(categoryId)}` : "";
   const body = await serverFetch<unknown>(`/api/products${qs}`);
-  return extractList<Product>(body, ["products"]);
+  return normalizeProducts(extractList<Product>(body, ["products"]));
 }
 
 export async function fetchProductByIdFromApi(id: string): Promise<Product | undefined> {
   try {
     const body = await serverFetch<unknown>(`/api/products/${id}`);
-    return extractItem<Product>(body, ["product"]);
+    const product = extractItem<Product>(body, ["product"]);
+    return product ? normalizeProduct(product) : undefined;
   } catch {
     return undefined;
   }

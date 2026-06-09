@@ -58,6 +58,8 @@ const nextConfig: NextConfig = {
     root: currentDir,
   },
   images: {
+    localPatterns: [{ pathname: "/uploads/**" }],
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     remotePatterns: [
       { protocol: "https", hostname: "5.imimg.com" },
       { protocol: "https", hostname: "tse1.mm.bing.net" },

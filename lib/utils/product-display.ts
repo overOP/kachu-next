@@ -1,16 +1,23 @@
 import type { Product, Review } from "@/lib/types/api";
+import { resolveImageSrc } from "@/lib/utils/image-src";
+import { normalizeProductImages } from "@/lib/utils/normalize-product";
 
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=400&q=80";
 
 export function productImage(product: Product): string {
-  return product.images?.[0] ?? product.category?.image ?? PLACEHOLDER_IMAGE;
+  const images = normalizeProductImages(product.images).map(resolveImageSrc);
+  if (images[0]) return images[0];
+  const categoryImage = product.category?.image;
+  if (categoryImage) return resolveImageSrc(categoryImage);
+  return PLACEHOLDER_IMAGE;
 }
 
 export function productImages(product: Product): string[] {
-  if (product.images?.length) return product.images;
+  const images = normalizeProductImages(product.images).map(resolveImageSrc);
+  if (images.length) return images;
   const fallback = product.category?.image;
-  return fallback ? [fallback] : [PLACEHOLDER_IMAGE];
+  return fallback ? [resolveImageSrc(fallback)] : [PLACEHOLDER_IMAGE];
 }
 
 export function productPriceLabel(product: Product): string {
