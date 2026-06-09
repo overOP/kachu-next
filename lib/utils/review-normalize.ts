@@ -26,6 +26,15 @@ export function normalizeReview(raw: unknown): Review | null {
     }
   }
 
+  const productRaw = r.product;
+  let product: Review["product"];
+  if (productRaw != null && typeof productRaw === "object") {
+    const p = productRaw as Record<string, unknown>;
+    if (typeof p.name === "string") {
+      product = { id: String(p.id ?? productId), name: p.name };
+    }
+  }
+
   return {
     id: String(id),
     productId: String(productId),
@@ -33,6 +42,8 @@ export function normalizeReview(raw: unknown): Review | null {
     rating,
     comment: typeof r.comment === "string" ? r.comment : null,
     reviewer,
+    user: reviewer,
+    product,
     createdAt: typeof r.createdAt === "string" ? r.createdAt : undefined,
   };
 }

@@ -6,6 +6,7 @@ import type { Category } from "@/lib/types/api";
 import { useAddProductsMutation } from "@/lib/api/admin/admin-product-api";
 import { parseApiError } from "@/lib/api/errors";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
+import ImageFileField from "@/components/admin/ImageFileField";
 
 type AddProductModalProps = {
   open: boolean;
@@ -119,7 +120,7 @@ export default function AddProductModal({
           Add product
         </h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-          Sends JSON to the products API. Image must be a URL (no file upload).
+          Upload a product image or paste a URL — the image is stored here and saved to the API as a link.
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -200,17 +201,11 @@ export default function AddProductModal({
                 className={`mt-1.5 ${authInputClassName}`}
               />
             </div>
-            <div>
-              <label htmlFor="add-image" className={authLabelClassName}>
-                Image URL (https)
-              </label>
-              <input
-                id="add-image"
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…"
-                className={`mt-1.5 ${authInputClassName}`}
+            <div className="sm:col-span-2">
+              <ImageFileField
+                imageUrl={imageUrl}
+                onImageUrlChange={setImageUrl}
+                disabled={isLoading}
               />
             </div>
             <div className="sm:col-span-2">

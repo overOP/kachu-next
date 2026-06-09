@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import type { Category, Product } from "@/lib/types/api";
 import { useUpdateProductMutation } from "@/lib/api/admin/admin-product-api";
 import { parseApiError } from "@/lib/api/errors";
-import { productImage } from "@/lib/utils/product-display";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
+import ImageFileField from "@/components/admin/ImageFileField";
 
 type EditProductModalProps = {
   open: boolean;
@@ -33,6 +33,7 @@ function productFormDefaults(product: Product) {
     stock: product.stock != null ? String(product.stock) : "",
     categoryId: product.categoryId,
     imageUrl: product.images?.[0] ?? "",
+    isActive: product.isActive !== false,
   };
 }
 
@@ -53,6 +54,7 @@ function EditProductForm({
   const [stock, setStock] = useState(defaults.stock);
   const [categoryId, setCategoryId] = useState(defaults.categoryId);
   const [imageUrl, setImageUrl] = useState(defaults.imageUrl);
+  const [isActive, setIsActive] = useState(defaults.isActive);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -78,6 +80,7 @@ function EditProductForm({
           minimumOrder: mo,
           categoryId,
           images,
+          isActive,
           ...(stockNum != null && Number.isFinite(stockNum) ? { stock: stockNum } : {}),
         },
       }).unwrap();
@@ -168,19 +171,20 @@ function EditProductForm({
             className={`mt-1.5 ${authInputClassName}`}
           />
         </div>
-        <div>
-          <label htmlFor="edit-image" className={authLabelClassName}>
-            Image URL
-          </label>
+        <ImageFileField
+          imageUrl={imageUrl}
+          onImageUrlChange={setImageUrl}
+          disabled={isLoading}
+        />
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-zinc-300">
           <input
-            id="edit-image"
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder={productImage(product)}
-            className={`mt-1.5 ${authInputClassName}`}
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            disabled={isLoading}
           />
-        </div>
+          Active (visible on storefront when backend returns inactive items)
+        </label>
         <div>
           <label htmlFor="edit-desc" className={authLabelClassName}>
             Description

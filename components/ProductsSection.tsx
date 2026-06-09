@@ -161,7 +161,7 @@ function ProductsSectionInner({
           </div>
         </header>
 
-        {isCatalogPage && categories.length > 0 ? (
+        {isCatalogPage ? (
           <ProductsCatalogToolbar
             categories={categories}
             categoryId={categoryId}

@@ -53,10 +53,7 @@ function NavbarContent() {
 
   const [searchValue, setSearchValue] = useState(qFromUrl);
 
-  const links = [
-    ...publicLinks,
-    ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
-  ];
+  const links = publicLinks;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -229,6 +226,17 @@ function NavbarContent() {
 
           <ThemeToggle />
 
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              title="Admin panel"
+              aria-label="Admin panel"
+              className="hidden h-11 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-sky-500/40 dark:bg-sky-950/50 dark:text-sky-300 dark:hover:bg-sky-900/50 md:inline-flex"
+            >
+              Admin
+            </Link>
+          ) : null}
+
           <Link
             href={accountHref}
             title={accountLabel}
@@ -323,6 +331,15 @@ function NavbarContent() {
               {item.label}
             </Link>
           ))}
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              onClick={() => setMenuOpen(false)}
+              className="block min-h-11 py-2 text-xl font-semibold text-emerald-700 hover:text-[#2d8c5f] dark:text-sky-300 dark:hover:text-sky-200"
+            >
+              Admin panel
+            </Link>
+          ) : null}
           <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
             <Link
               href={accountHref}

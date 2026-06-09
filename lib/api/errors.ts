@@ -26,6 +26,7 @@ const BACKEND_ERROR_MESSAGES: Record<string, string> = {
   OTP_LIMIT: "Too many attempts. Try again later.",
   OTP_COOLDOWN: "Please wait 60 seconds before resending.",
   USER_NOT_FOUND: "No account found with that email.",
+  CATEGORY_EXISTS: "A category with this name already exists.",
 };
 
 export function mapBackendErrorCode(code: string): string {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiSearch } from "react-icons/fi";
 import type { Category } from "@/lib/types/api";
+import CatalogDownloadBanner from "@/components/catalog/CatalogDownloadBanner";
 
 const DEBOUNCE_MS = 320;
 
@@ -67,6 +68,8 @@ export default function ProductsCatalogToolbar({
 
   return (
     <div className="mb-12 space-y-6">
+      <CatalogDownloadBanner />
+
       <div className="relative max-w-xl">
         <label htmlFor="catalog-search" className="sr-only">
           Search catalog

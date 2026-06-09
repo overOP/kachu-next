@@ -77,10 +77,31 @@ describe("AppInitializer user flow", () => {
     });
   });
 
-  it("clears stale auth when refresh returns unauthorized", async () => {
-    localStorage.setItem("token", "stale");
+  it("keeps cached session when refresh returns unauthorized but access token exists", async () => {
+    localStorage.setItem("token", "cached-access");
     localStorage.setItem("userData", JSON.stringify(mockUser));
 
+    refreshSessionMock.mockResolvedValue({ ok: false, reason: "unauthorized" });
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <AppInitializer>
+          <p>Still signed in</p>
+        </AppInitializer>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(store.getState().auth.isAuthenticated).toBe(true);
+      expect(store.getState().auth.token).toBe("cached-access");
+      expect(store.getState().auth.user).toEqual(mockUser);
+      expect(localStorage.getItem("token")).toBe("cached-access");
+    });
+  });
+
+  it("clears auth when refresh returns unauthorized and no cached token", async () => {
     refreshSessionMock.mockResolvedValue({ ok: false, reason: "unauthorized" });
 
     const store = createTestStore({
@@ -100,7 +121,6 @@ describe("AppInitializer user flow", () => {
     await waitFor(() => {
       expect(store.getState().auth.isAuthenticated).toBe(false);
       expect(store.getState().auth.token).toBeNull();
-      expect(localStorage.getItem("token")).toBeNull();
     });
   });
 });

@@ -39,9 +39,12 @@ export default function AppInitializer({ children }: { children: React.ReactNode
             ...(result.user ? { user: result.user } : {}),
           })
         );
-      } else {
-        // 401 = no cookie (guest). Also clears stale tokens left in localStorage.
-        dispatch(logout());
+      } else if (result.reason === "unauthorized") {
+        // No refresh cookie — keep a cached access token + user so admins stay signed in
+        // until the access token expires or an API call returns 401.
+        if (!localStorage.getItem("token")) {
+          dispatch(logout());
+        }
       }
     });
 

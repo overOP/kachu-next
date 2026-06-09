@@ -19,12 +19,16 @@ import {
 import StarRating from "@/components/ui/StarRating";
 import AddProductModal from "@/components/admin/AddProductModal";
 import EditProductModal from "@/components/admin/EditProductModal";
+import CatalogUploadSection from "@/components/admin/CatalogUploadSection";
 
 export default function AdminProductsPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [actionError, setActionError] = useState("");
-  const { data: products = [], isLoading, isError, refetch } = useGetProductQuery();
+  const [filterCategoryId, setFilterCategoryId] = useState("");
+  const { data: products = [], isLoading, isError, refetch } = useGetProductQuery(
+    filterCategoryId ? { categoryId: filterCategoryId } : undefined
+  );
   const { data: categories = [] } = useGetCategoriesQuery();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
@@ -74,6 +78,29 @@ export default function AdminProductsPanel() {
         </p>
       ) : null}
 
+      <div className="mb-8">
+        <CatalogUploadSection compact />
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label htmlFor="admin-product-filter" className="text-sm font-semibold text-emerald-900 dark:text-zinc-200">
+          Filter by category
+        </label>
+        <select
+          id="admin-product-filter"
+          value={filterCategoryId}
+          onChange={(e) => setFilterCategoryId(e.target.value)}
+          className="min-h-10 rounded-xl border border-emerald-200 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
@@ -82,12 +109,22 @@ export default function AdminProductsPanel() {
                 <th className="px-4 py-3">Product</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3">Stock</th>
                 <th className="px-4 py-3">MOQ</th>
+                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-50 dark:divide-zinc-800">
+              {!isLoading && products.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <p className="font-semibold text-emerald-950 dark:text-zinc-100">No products yet</p>
+                    <p className="mt-1 text-sm text-slate-500">Add your first product to get started.</p>
+                  </td>
+                </tr>
+              ) : null}
               {products.map((p) => {
                 const avg = averageRatingFromProduct(p);
                 return (
@@ -103,7 +140,19 @@ export default function AdminProductsPanel() {
                     </td>
                     <td className="px-4 py-3">{p.category?.name ?? categoryName(p.categoryId)}</td>
                     <td className="px-4 py-3 font-medium tabular-nums">{productPriceLabel(p)}</td>
+                    <td className="px-4 py-3 tabular-nums">{p.stock ?? "—"}</td>
                     <td className="px-4 py-3">{productMoqLabel(p)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          p.isActive === false
+                            ? "bg-slate-100 text-slate-500 dark:bg-zinc-800"
+                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        }`}
+                      >
+                        {p.isActive === false ? "Inactive" : "Active"}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       {avg > 0 ? <StarRating value={Math.round(avg)} readOnly size="sm" showScore={false} /> : "—"}
                     </td>

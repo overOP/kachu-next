@@ -1,20 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import {
   useDeleteUserMutation,
   useGetAllUsersQuery,
 } from "@/lib/api/auth/admin-auth-api";
-import { canDeleteUser, roleLabel } from "@/lib/auth/rbac";
+import { canDeleteUser } from "@/lib/auth/rbac";
 import { parseApiError } from "@/lib/api/errors";
 import { useAuth } from "@/lib/hooks/use-auth";
+import type { User } from "@/lib/types/api";
+import RoleBadge from "@/components/admin/RoleBadge";
+import EditUserModal from "@/components/admin/EditUserModal";
 
 export default function AdminUsersPanel() {
   const { user: actor } = useAuth();
-  const { data: users = [], isLoading, isError } = useGetAllUsersQuery();
+  const { data: users = [], isLoading, isError, refetch } = useGetAllUsersQuery();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [error, setError] = useState("");
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const handleDelete = async (id: string) => {
     if (!canDeleteUser(actor, id)) return;
@@ -28,13 +32,13 @@ export default function AdminUsersPanel() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <header className="mb-8">
         <h1 className="text-3xl font-black tracking-tight text-emerald-950 dark:text-zinc-50">
           Users
         </h1>
         <p className="mt-2 text-slate-600 dark:text-zinc-400">
-          Admin and superadmin access. Delete is superadmin-only.
+          Admin and superadmin can view all users. Only superadmins can delete accounts.
         </p>
       </header>
 
@@ -51,55 +55,93 @@ export default function AdminUsersPanel() {
       ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
-        <table className="w-full min-w-[520px] text-left text-sm">
-          <thead className="border-b border-emerald-100 bg-emerald-50/80 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-sky-400">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-emerald-50 dark:divide-zinc-800">
-            {isLoading ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] text-left text-sm">
+            <thead className="border-b border-emerald-100 bg-emerald-50/80 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-sky-400">
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  Loading users…
-                </td>
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Joined</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
-            ) : (
-              users.map((u) => (
-                <tr key={String(u.id)} className="text-slate-700 dark:text-zinc-300">
-                  <td className="px-4 py-3 font-semibold text-emerald-950 dark:text-zinc-100">
-                    {u.name}
-                  </td>
-                  <td className="px-4 py-3">{u.email}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-emerald-100/80 px-2 py-0.5 text-xs font-medium dark:bg-zinc-800 dark:text-sky-300">
-                      {roleLabel(u.role)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canDeleteUser(actor, u.id) ? (
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(u.id)}
-                        disabled={isDeleting}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 dark:text-red-400"
-                      >
-                        <FiTrash2 className="h-4 w-4" aria-hidden />
-                        Delete
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-emerald-50 dark:divide-zinc-800">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    Loading users…
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                users.map((u) => (
+                  <tr key={String(u.id)} className="text-slate-700 dark:text-zinc-300">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {u.profileImage || u.img ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={u.profileImage ?? u.img ?? ""}
+                            alt=""
+                            className="h-9 w-9 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800 dark:bg-zinc-800 dark:text-sky-300">
+                            {u.name.charAt(0)}
+                          </span>
+                        )}
+                        <span className="font-semibold text-emerald-950 dark:text-zinc-100">{u.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{u.email}</td>
+                    <td className="px-4 py-3">{u.phone ?? u.number ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <RoleBadge role={u.role} />
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500">
+                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEditingUser(u)}
+                          className="text-emerald-700 dark:text-sky-400"
+                          aria-label={`Edit ${u.name}`}
+                        >
+                          <FiEdit2 className="h-4 w-4" />
+                        </button>
+                        {canDeleteUser(actor, u.id) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(u.id)}
+                            disabled={isDeleting}
+                            className="text-red-600 dark:text-red-400"
+                            aria-label={`Delete ${u.name}`}
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <EditUserModal
+        open={editingUser != null}
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSuccess={() => {
+          refetch();
+          setEditingUser(null);
+        }}
+      />
     </div>
   );
 }

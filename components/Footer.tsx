@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Syne } from 'next/font/google';
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
+import CatalogDownloadLink from '@/components/catalog/CatalogDownloadLink';
 
 const syne = Syne({ subsets: ['latin'], weight: ['700', '800'] });
 
@@ -30,7 +31,7 @@ export default function Footer() {
         },
       ],
     },
-    { title: 'Support', links: ['Help Center', 'Contact', 'Privacy', 'Terms'] },
+    { title: 'Support', links: ['Help Center', 'Contact', 'Privacy', 'Terms'], hasCatalog: true },
   ];
 
   return (
@@ -97,7 +98,12 @@ export default function Footer() {
                     </Link>
                   </li>
                 ))}
-                
+                {'hasCatalog' in col && col.hasCatalog ? (
+                  <li>
+                    <CatalogDownloadLink />
+                  </li>
+                ) : null}
+
                 {/* Render Contact Items with Icons if they exist */}
                 {col.contactItems?.map((item, idx) => (
                   <li key={idx}>

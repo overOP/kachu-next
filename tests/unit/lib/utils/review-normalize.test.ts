@@ -20,6 +20,8 @@ describe("normalizeReview", () => {
       rating: 5,
       comment: "Great",
       reviewer: { name: "Alice", profileImage: "https://example.com/a.jpg" },
+      user: { name: "Alice", profileImage: "https://example.com/a.jpg" },
+      product: undefined,
       createdAt: "2025-06-01T00:00:00Z",
     });
   });

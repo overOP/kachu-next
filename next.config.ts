@@ -4,6 +4,45 @@ import type { NextConfig } from "next";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
+function siteImagePatterns(): { protocol: "http" | "https"; hostname: string; port?: string; pathname: string }[] {
+  const patterns: { protocol: "http" | "https"; hostname: string; port?: string; pathname: string }[] = [
+    { protocol: "http", hostname: "localhost", port: "3000", pathname: "/uploads/**" },
+    { protocol: "https", hostname: "localhost", port: "3000", pathname: "/uploads/**" },
+  ];
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (siteUrl) {
+    try {
+      const parsed = new URL(siteUrl);
+      patterns.push({
+        protocol: parsed.protocol.replace(":", "") as "http" | "https",
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+        pathname: "/uploads/**",
+      });
+    } catch {
+      // ignore invalid site URL
+    }
+  }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (apiUrl) {
+    try {
+      const parsed = new URL(apiUrl);
+      patterns.push({
+        protocol: parsed.protocol.replace(":", "") as "http" | "https",
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+        pathname: "/**",
+      });
+    } catch {
+      // ignore invalid API URL
+    }
+  }
+
+  return patterns;
+}
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -33,6 +72,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "1000logos.net" },
       { protocol: "https", hostname: "logoeps.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      ...siteImagePatterns(),
     ],
   },
   async headers() {

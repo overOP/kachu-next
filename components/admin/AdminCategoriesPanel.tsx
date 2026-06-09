@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/admin/admin-category-api";
 import { parseApiError } from "@/lib/api/errors";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
+import ImageFileField from "@/components/admin/ImageFileField";
 
 export default function AdminCategoriesPanel() {
   const { data: categories = [], isLoading, isError } = useGetCategoriesQuery();
@@ -25,6 +26,7 @@ export default function AdminCategoriesPanel() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editImage, setEditImage] = useState("");
+  const [editIsActive, setEditIsActive] = useState(true);
 
   const busy = isAdding || isUpdating || isDeleting;
 
@@ -45,11 +47,18 @@ export default function AdminCategoriesPanel() {
     }
   };
 
-  const startEdit = (id: string, currentName: string, desc?: string | null, img?: string | null) => {
+  const startEdit = (
+    id: string,
+    currentName: string,
+    desc?: string | null,
+    img?: string | null,
+    isActive = true
+  ) => {
     setEditingId(id);
     setEditName(currentName);
     setEditDescription(desc ?? "");
     setEditImage(img ?? "");
+    setEditIsActive(isActive !== false);
   };
 
   const saveEdit = async (id: string) => {
@@ -61,6 +70,7 @@ export default function AdminCategoriesPanel() {
           name: editName.trim(),
           description: editDescription.trim() || undefined,
           image: editImage.trim() || undefined,
+          isActive: editIsActive,
         },
       }).unwrap();
       setEditingId(null);
@@ -70,7 +80,12 @@ export default function AdminCategoriesPanel() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this category?")) return;
+    if (
+      !window.confirm(
+        "Delete this category? Products in this category may also be removed."
+      )
+    )
+      return;
     setError("");
     try {
       await deleteCategory(id).unwrap();
@@ -136,16 +151,12 @@ export default function AdminCategoriesPanel() {
             />
           </div>
           <div>
-            <label htmlFor="cat-image" className={authLabelClassName}>
-              Image URL (optional)
-            </label>
-            <input
-              id="cat-image"
-              type="url"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://…"
-              className={`mt-1.5 ${authInputClassName}`}
+            <ImageFileField
+              label="Category image (optional)"
+              imageUrl={image}
+              onImageUrlChange={setImage}
+              kind="category"
+              disabled={busy}
             />
           </div>
         </div>
@@ -158,40 +169,78 @@ export default function AdminCategoriesPanel() {
         </button>
       </form>
 
-      <ul className="divide-y divide-emerald-100 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/80">
-        {categories.map((c) => (
-          <li key={c.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-bold text-emerald-950 dark:text-zinc-100">{c.name}</p>
-              {c.description ? (
-                <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">{c.description}</p>
-              ) : null}
-              <p className="text-xs font-mono text-slate-500 dark:text-zinc-500">{c.id}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {editingId === c.id ? (
-                <div className="w-full space-y-2 sm:min-w-[16rem]">
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className={authInputClassName} placeholder="Name" />
-                  <input value={editImage} onChange={(e) => setEditImage(e.target.value)} className={authInputClassName} placeholder="Image URL" />
-                  <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} className={`w-full resize-y ${authInputClassName}`} placeholder="Description" />
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => saveEdit(c.id)} disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">Save</button>
-                    <button type="button" onClick={() => setEditingId(null)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Cancel</button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <button type="button" onClick={() => startEdit(c.id, c.name, c.description, c.image)} className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Edit</button>
-                  <button type="button" onClick={() => handleDelete(c.id)} disabled={busy} className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
-                    <FiTrash2 className="h-3.5 w-3.5" aria-hidden />
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-emerald-100 bg-emerald-50/80 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-sky-400">
+              <tr>
+                <th className="px-4 py-3">Image</th>
+                <th className="px-4 py-3">Name</th>
+                <th className="px-4 py-3">Products</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-emerald-50 dark:divide-zinc-800">
+              {categories.map((c) => (
+                <tr key={c.id}>
+                  <td className="px-4 py-3">
+                    {c.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                    ) : (
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 dark:bg-zinc-800">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-emerald-950 dark:text-zinc-100">{c.name}</p>
+                    {c.description ? (
+                      <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{c.description}</p>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums">{c.products?.length ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        c.isActive === false
+                          ? "bg-slate-100 text-slate-500 dark:bg-zinc-800"
+                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                      }`}
+                    >
+                      {c.isActive === false ? "Inactive" : "Active"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {editingId === c.id ? (
+                      <div className="space-y-2 text-left">
+                        <input value={editName} onChange={(e) => setEditName(e.target.value)} className={authInputClassName} placeholder="Name" />
+                        <ImageFileField label="Image" imageUrl={editImage} onImageUrlChange={setEditImage} kind="category" disabled={busy} />
+                        <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={2} className={`w-full resize-y ${authInputClassName}`} />
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" checked={editIsActive} onChange={(e) => setEditIsActive(e.target.checked)} />
+                          Active
+                        </label>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => saveEdit(c.id)} disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">Save</button>
+                          <button type="button" onClick={() => setEditingId(null)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={() => startEdit(c.id, c.name, c.description, c.image, c.isActive)} className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-600">Edit</button>
+                        <button type="button" onClick={() => handleDelete(c.id)} disabled={busy} className="inline-flex items-center gap-1 text-xs font-semibold text-red-600">
+                          <FiTrash2 className="h-3.5 w-3.5" aria-hidden />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
