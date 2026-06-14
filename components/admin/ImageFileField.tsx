@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { uploadImageFile } from "@/lib/api/upload-file";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
+import { authLabelClassName } from "@/components/auth/authFieldClasses";
 
 type ImageFileFieldProps = {
   label?: string;
@@ -22,7 +22,6 @@ export default function ImageFileField({
   disabled = false,
 }: ImageFileFieldProps) {
   const inputId = useId();
-  const urlId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -79,7 +78,7 @@ export default function ImageFileField({
           className={`mt-1.5 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 disabled:opacity-60 dark:text-zinc-400 dark:file:bg-sky-600 dark:hover:file:bg-sky-500`}
         />
         <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">
-          Upload a real image (JPEG, PNG, WebP, or GIF, max 5 MB). Stored on this site and sent to the API as a URL.
+          Upload an image from your device (JPEG, PNG, WebP, or GIF, max 5 MB).
         </p>
       </div>
 
@@ -103,21 +102,6 @@ export default function ImageFileField({
           {uploadError}
         </p>
       ) : null}
-
-      <div>
-        <label htmlFor={urlId} className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
-          Or paste image URL
-        </label>
-        <input
-          id={urlId}
-          type="url"
-          value={imageUrl}
-          disabled={disabled || uploading}
-          onChange={(e) => onImageUrlChange(e.target.value)}
-          placeholder="https://…"
-          className={`mt-1 ${authInputClassName}`}
-        />
-      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { parseApiError } from "@/lib/api/errors";
 import { isSuperadmin } from "@/lib/auth/rbac";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { authInputClassName, authLabelClassName } from "@/components/auth/authFieldClasses";
+import ImageFileField from "@/components/admin/ImageFileField";
 import RoleBadge from "@/components/admin/RoleBadge";
 
 type EditUserModalProps = {
@@ -161,19 +162,12 @@ function EditUserForm({ user, titleId, onClose, onSuccess }: EditUserFormProps) 
             </select>
           </div>
         </div>
-        <div>
-          <label htmlFor="edit-user-avatar" className={authLabelClassName}>
-            Profile image URL
-          </label>
-          <input
-            id="edit-user-avatar"
-            type="url"
-            value={profileImage}
-            onChange={(e) => setProfileImage(e.target.value)}
-            placeholder="https://…"
-            className={`mt-1.5 ${authInputClassName}`}
-          />
-        </div>
+        <ImageFileField
+          label="Profile image"
+          imageUrl={profileImage}
+          onImageUrlChange={setProfileImage}
+          disabled={isLoading}
+        />
         {isSuperadmin(actor) ? (
           <div>
             <label htmlFor="edit-user-role" className={authLabelClassName}>
