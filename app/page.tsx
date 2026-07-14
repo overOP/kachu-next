@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import HomePageClient from "./home-client";
 import { fetchProducts } from "@/lib/services/products";
 
