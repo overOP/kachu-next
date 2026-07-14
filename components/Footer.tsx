@@ -130,12 +130,9 @@ export default function Footer() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 group cursor-default order-1 sm:order-2">
             <span className="text-xs uppercase tracking-widest font-bold text-white/80">Built by</span>
-            <Link 
-              href="https://theorigintech.com" 
-              className="min-h-10 inline-flex items-center rounded-md px-1 text-xs font-bold uppercase tracking-widest text-emerald-300 underline-offset-2 hover:text-white hover:underline dark:text-sky-300"
-            >
-              Origin Tech
-            </Link>
+            <span className="min-h-10 inline-flex items-center rounded-md px-1 text-xs font-bold uppercase tracking-widest text-emerald-300 dark:text-sky-300">
+              Yudeat
+            </span>
           </div>
         </div>
       </div>
