@@ -5,7 +5,7 @@ import { getSiteUrl } from "@/lib/config/site-url";
 const base = getSiteUrl();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const allProducts = await fetchProducts();
+  const allProducts = await fetchProducts().catch(() => []);
   const staticRoutes: MetadataRoute.Sitemap = [
     "",
     "/products",
