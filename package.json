@@ -10,7 +10,7 @@
     "dev": "next dev",
     "dev:clean": "rm -rf .next && next dev",
     "build": "next build",
-   "start": "NODE_ENV=production node server.js",
+    "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
