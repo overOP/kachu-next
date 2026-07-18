@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import type { Metadata } from "next";
 import Footer from "@/components/Footer";
 import PageHero from "@/components/layout/PageHero";
