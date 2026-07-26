@@ -5,5 +5,5 @@ import { fetchReviewsFromApi } from "@/lib/api/server-fetch";
 export const fetchReviewsForProduct = cache(async function fetchReviewsForProduct(
   productId: string
 ): Promise<Review[]> {
-  return fetchReviewsFromApi(productId);
+  return fetchReviewsFromApi(productId).catch(() => []);
 });

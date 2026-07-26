@@ -10,13 +10,13 @@ import { filterProductsByCategoryId } from "@/lib/utils/product-display";
 export const fetchProducts = cache(async function fetchProducts(
   categoryId?: string
 ): Promise<Product[]> {
-  return fetchProductsFromApi(categoryId);
+  return fetchProductsFromApi(categoryId).catch(() => []);
 });
 
 export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
   Category[]
 > {
-  return fetchCategoriesFromApi();
+  return fetchCategoriesFromApi().catch(() => []);
 });
 
 export const fetchProductById = cache(async function fetchProductById(

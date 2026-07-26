@@ -31,6 +31,7 @@ async function serverFetch<T>(
       headers,
       next: revalidate === false ? { revalidate: 0 } : { revalidate },
       cache: revalidate === false ? "no-store" : undefined,
+      signal: AbortSignal.timeout(8000),
     });
   } catch {
     throw new Error("Network error. Could not reach the API.");
@@ -88,6 +89,7 @@ export async function checkHealth(): Promise<boolean> {
     const res = await fetch(`${API_ORIGIN}/health`, {
       headers: { Accept: "application/json" },
       next: { revalidate: 0 },
+      signal: AbortSignal.timeout(8000),
     });
     return res.ok;
   } catch {
