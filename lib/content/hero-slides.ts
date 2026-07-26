@@ -22,7 +22,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     cta: "Explore",
   },
   {
-    img: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=1400&q=85",
+    img: "/hero/agri-tech-slide.png",
     tag: "Wholesale Deals",
     title: "Shop Smarter\nwith Kart",
     sub: "Your one-stop wholesale marketplace for every need.",

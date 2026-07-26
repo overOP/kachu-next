@@ -21,8 +21,8 @@ export default function Footer() {
         },
         {
           icon: <FaEnvelope size={14} aria-hidden />,
-          label: "logo@gmail.com",
-          href: "mailto:logo@gmail.com",
+          label: "kachukart5@gmail.com",
+          href: "mailto:kachukart5@gmail.com",
         },
         {
           icon: <FaPhoneAlt size={14} aria-hidden />,
