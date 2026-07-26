@@ -1,18 +1,12 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiShoppingBag } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
-import StarRating from "@/components/ui/StarRating";
 import type { Product } from "@/lib/types/api";
-import {
-  averageRatingFromProduct,
-  productImage,
-  productMoqLabel,
-  productPriceLabel,
-} from "@/lib/utils/product-display";
+import { productImage, productMoqLabel, productPriceLabel } from "@/lib/utils/product-display";
 
 type ProductCardProps = {
   product: Product;
@@ -28,11 +22,6 @@ function ProductCard({
   onNavigate,
   onOrder,
 }: ProductCardProps) {
-  const roundedRating = useMemo(() => {
-    const avg = averageRatingFromProduct(product);
-    return avg > 0 ? Math.round(avg) : 0;
-  }, [product]);
-
   if (variant === "compact") {
     return (
       <Link
@@ -54,9 +43,6 @@ function ProductCard({
           <span className="font-black text-emerald-950 dark:text-zinc-50">
             {productPriceLabel(product)}
           </span>
-          {roundedRating > 0 ? (
-            <StarRating value={roundedRating} readOnly size="sm" showScore={false} />
-          ) : null}
         </div>
       </Link>
     );
@@ -88,15 +74,6 @@ function ProductCard({
           <h4 className="text-sm leading-tight font-bold text-emerald-950 dark:text-zinc-100 sm:text-lg">
             {product.name}
           </h4>
-          {roundedRating > 0 ? (
-            <div
-              className="shrink-0 rounded-lg bg-emerald-50 px-1.5 py-0.5 dark:bg-zinc-800"
-              onClick={(e) => e.stopPropagation()}
-              title="Product rating"
-            >
-              <StarRating value={roundedRating} readOnly size="sm" showScore={false} />
-            </div>
-          ) : null}
         </div>
 
         <p className="text-[9px] font-bold tracking-wide text-slate-600 uppercase sm:text-[11px] sm:tracking-widest dark:text-zinc-400">

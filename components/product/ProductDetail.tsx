@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
 import type { Product } from "@/lib/types/api";
-import ProductRatingCard from "@/components/product/ProductRatingCard";
 import { buildProductOrderMessage, buildWhatsAppUrl } from "@/lib/constants/contact";
 import {
   productImage,
@@ -15,20 +14,12 @@ import {
 type ProductDetailProps = {
   product: Product;
   relatedProducts: Product[];
-  reviewAverage?: number | null;
-  reviewCount?: number;
 };
 
-export default function ProductDetail({
-  product,
-  relatedProducts,
-  reviewAverage = null,
-  reviewCount = 0,
-}: ProductDetailProps) {
+export default function ProductDetail({ product, relatedProducts }: ProductDetailProps) {
   const whatsappUrl = buildWhatsAppUrl(buildProductOrderMessage(product));
   const images = productImages(product);
   const stock = productStockLabel(product);
-  const avg = reviewAverage ?? 0;
 
   return (
     <div className="bg-emerald-50/40 dark:bg-zinc-950 px-4 py-8 sm:py-12 sm:px-6 md:px-10">
@@ -64,7 +55,7 @@ export default function ProductDetail({
             <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-emerald-950 dark:text-zinc-50">
               {product.name}
             </h1>
-            <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
+            <p className="mt-4 whitespace-pre-line text-sm sm:text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
               {product.description}
             </p>
 
@@ -103,12 +94,9 @@ export default function ProductDetail({
               </div>
             )}
 
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="rounded-2xl bg-emerald-50 dark:bg-zinc-800/70 p-4 border border-emerald-100 dark:border-zinc-700">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">Price</p>
-                <p className="mt-1 text-lg sm:text-2xl font-black text-emerald-950 dark:text-zinc-50">{productPriceLabel(product)}</p>
-              </div>
-              <ProductRatingCard averageRating={avg} reviewCount={reviewCount} />
+            <div className="mt-6 rounded-2xl bg-emerald-50 dark:bg-zinc-800/70 p-4 border border-emerald-100 dark:border-zinc-700">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-700 dark:text-sky-400 font-bold">Price</p>
+              <p className="mt-1 text-lg sm:text-2xl font-black text-emerald-950 dark:text-zinc-50">{productPriceLabel(product)}</p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-slate-600 dark:text-zinc-300">
