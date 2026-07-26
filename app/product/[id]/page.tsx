@@ -33,16 +33,16 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = await fetchProductById(id);
+  const [product, reviews] = await Promise.all([
+    fetchProductById(id),
+    fetchReviewsForProduct(id),
+  ]);
 
   if (!product) {
     notFound();
   }
 
-  const [relatedProducts, reviews] = await Promise.all([
-    fetchRelatedProducts(product, 2),
-    fetchReviewsForProduct(id),
-  ]);
+  const relatedProducts = await fetchRelatedProducts(product, 2);
 
   const reviewAverage = averageRatingFromReviews(reviews);
 

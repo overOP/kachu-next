@@ -43,7 +43,7 @@ function NavbarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const qFromUrl = searchParams.get("q") ?? "";
-  const { isAuthenticated, isAdmin, user } = useAuth();
+  const { isAdmin } = useAuth();
 
   const navRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -135,9 +135,6 @@ function NavbarContent() {
 
   const searchInputClass =
     "bg-transparent text-sm text-slate-700 outline-none w-full placeholder:text-slate-500 dark:text-zinc-200 dark:placeholder:text-zinc-400";
-
-  const accountHref = isAuthenticated ? "/profile" : "/login";
-  const accountLabel = isAuthenticated ? user?.name ?? "Profile" : "Sign in";
 
   return (
     <>
@@ -237,14 +234,7 @@ function NavbarContent() {
             </Link>
           ) : null}
 
-          <Link
-            href={accountHref}
-            title={accountLabel}
-            aria-label={accountLabel}
-            className="hidden h-11 max-w-[9rem] shrink-0 items-center justify-center truncate rounded-full border border-gray-200 bg-gray-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-gray-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 md:inline-flex"
-          >
-            {accountLabel}
-          </Link>
+          {/* ponytail: account link (sign-in and profile) hidden entirely for now per request */}
 
           {menuOpen ? (
             <button
@@ -340,15 +330,7 @@ function NavbarContent() {
               Admin panel
             </Link>
           ) : null}
-          <div className="pt-4 border-t border-gray-100 dark:border-zinc-800">
-            <Link
-              href={accountHref}
-              onClick={() => setMenuOpen(false)}
-              className="block w-full py-3 text-center bg-[#2d8c5f] dark:bg-sky-600 dark:hover:bg-sky-500 text-white rounded-xl font-bold transition-colors"
-            >
-              {isAuthenticated ? "Your profile" : "Login / Sign Up"}
-            </Link>
-          </div>
+          {/* ponytail: account link (sign-in and profile) hidden entirely for now per request */}
         </div>
       </div>
 
