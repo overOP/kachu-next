@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     locale: "en",
     siteName: "Kachu Kart",
   },
+  verification: {
+    google: "wNbG28M2MsgM1dgzbMlBkh5wfqcwiiC59mgEwgyWUA4",
+  },
 };
 
 export default function RootLayout({
