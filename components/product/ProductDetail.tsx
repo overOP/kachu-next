@@ -16,6 +16,53 @@ type ProductDetailProps = {
   relatedProducts: Product[];
 };
 
+/** Renders "- " lines as a bullet list and "Label:" lines as subheads; blank lines are skipped. */
+function DescriptionBlocks({ description }: { description: string }) {
+  const lines = description.split("\n").filter((line) => line.trim().length > 0);
+
+  // Group consecutive "- " lines into single <ul> blocks so the list markup stays valid.
+  const blocks: { type: "text" | "heading" | "list"; content: string | string[] }[] = [];
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line.startsWith("- ")) {
+      const last = blocks[blocks.length - 1];
+      if (last?.type === "list") {
+        (last.content as string[]).push(line.slice(2));
+      } else {
+        blocks.push({ type: "list", content: [line.slice(2)] });
+      }
+    } else if (line.endsWith(":")) {
+      blocks.push({ type: "heading", content: line });
+    } else {
+      blocks.push({ type: "text", content: line });
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-1.5 text-sm sm:text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
+      {blocks.map((block, i) => {
+        if (block.type === "list") {
+          return (
+            <ul key={i} className="list-disc space-y-1 pl-5 marker:text-emerald-500 dark:marker:text-sky-500">
+              {(block.content as string[]).map((item, j) => (
+                <li key={j}>{item}</li>
+              ))}
+            </ul>
+          );
+        }
+        if (block.type === "heading") {
+          return (
+            <p key={i} className="pt-2 font-bold text-emerald-900 dark:text-zinc-200 first:pt-0">
+              {block.content as string}
+            </p>
+          );
+        }
+        return <p key={i}>{block.content as string}</p>;
+      })}
+    </div>
+  );
+}
+
 export default function ProductDetail({ product, relatedProducts }: ProductDetailProps) {
   const whatsappUrl = buildWhatsAppUrl(buildProductOrderMessage(product));
   const images = productImages(product);
@@ -55,9 +102,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-emerald-950 dark:text-zinc-50">
               {product.name}
             </h1>
-            <p className="mt-4 whitespace-pre-line text-sm sm:text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
-              {product.description}
-            </p>
+            <DescriptionBlocks description={product.description} />
 
             {images.length > 1 ? (
               <div className="mt-4 flex gap-2 overflow-x-auto">

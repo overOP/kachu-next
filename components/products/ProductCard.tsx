@@ -6,7 +6,12 @@ import Link from "next/link";
 import { FiShoppingBag } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import type { Product } from "@/lib/types/api";
-import { productImage, productMoqLabel, productPriceLabel } from "@/lib/utils/product-display";
+import {
+  productFeatureBullets,
+  productImage,
+  productMoqLabel,
+  productPriceLabel,
+} from "@/lib/utils/product-display";
 
 type ProductCardProps = {
   product: Product;
@@ -22,6 +27,8 @@ function ProductCard({
   onNavigate,
   onOrder,
 }: ProductCardProps) {
+  const featureBullets = productFeatureBullets(product, 2);
+
   if (variant === "compact") {
     return (
       <Link
@@ -79,6 +86,16 @@ function ProductCard({
         <p className="text-[9px] font-bold tracking-wide text-slate-600 uppercase sm:text-[11px] sm:tracking-widest dark:text-zinc-400">
           {productMoqLabel(product)}
         </p>
+
+        {featureBullets.length > 0 ? (
+          <ul className="mt-2 list-disc space-y-0.5 pl-3.5 text-[10px] text-slate-500 marker:text-emerald-400 sm:text-xs dark:text-zinc-500 dark:marker:text-sky-500">
+            {featureBullets.map((bullet) => (
+              <li key={bullet} className="line-clamp-1">
+                {bullet}
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-emerald-50 pt-3 sm:mt-6 sm:pt-4 dark:border-zinc-700/80">
           <span className="text-sm font-black tracking-tight text-emerald-950 sm:text-xl dark:text-zinc-50">

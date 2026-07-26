@@ -20,6 +20,16 @@ export function productImages(product: Product): string[] {
   return fallback ? [resolveImageSrc(fallback)] : [PLACEHOLDER_IMAGE];
 }
 
+/** First few "- " bullet lines from a description (e.g. Features) for a compact card preview. */
+export function productFeatureBullets(product: Product, limit = 2): string[] {
+  return product.description
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .slice(0, limit)
+    .map((line) => line.slice(2));
+}
+
 export function productPriceLabel(product: Product): string {
   const raw = product.price;
   if (typeof raw === "number" && Number.isFinite(raw)) {
