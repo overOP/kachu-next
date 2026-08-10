@@ -12,10 +12,6 @@ const HeroSlider = dynamic(() => import("@/components/HeroSlider"), {
   loading: () => <SectionSkeleton className="h-[520px] sm:h-[640px]" />,
 });
 
-const OwnerMessage = dynamic(() => import("@/components/OwnerMessage"), {
-  loading: () => <SectionSkeleton className="h-[300px]" />,
-});
-
 const ChooseUs = dynamic(() => import("@/components/ChooseUs"), {
   loading: () => <SectionSkeleton className="h-[280px]" />,
 });
@@ -41,7 +37,6 @@ export default function HomePageClient({
       <HeroSlider />
       <ProductsSection products={initialProducts} />
       <AboutSection />
-      <OwnerMessage />
       <ChooseUs />
       <Footer />
     </SiteShell>

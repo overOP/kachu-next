@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 };
 import PageHero from "@/components/layout/PageHero";
 import AboutSection from "@/components/AboutSection";
-import OwnerMessage from "@/components/OwnerMessage";
 import ChooseUs from "@/components/ChooseUs";
 import Footer from "@/components/Footer";
 
@@ -22,7 +21,6 @@ export default function AboutPage() {
         descriptionMaxWidth="3xl"
       />
       <AboutSection />
-      <OwnerMessage />
       <ChooseUs />
       <Footer />
     </SiteShell>

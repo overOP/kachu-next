@@ -6,6 +6,7 @@ import React, {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -74,6 +75,8 @@ function ProductsSectionInner({
   const deferredCategory = useDeferredValue(categoryId);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const replaceCategory = useCallback(
     (id: string) => {
@@ -106,7 +109,10 @@ function ProductsSectionInner({
   );
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => setCurrentPage(1));
+    const id = requestAnimationFrame(() => {
+      setCurrentPage(1);
+      setVisibleCount(ITEMS_PER_PAGE);
+    });
     return () => cancelAnimationFrame(id);
   }, [deferredQuery, deferredCategory]);
 
@@ -117,9 +123,29 @@ function ProductsSectionInner({
     return () => cancelAnimationFrame(id);
   }, [totalPages]);
 
+  const hasMore = isCatalogPage && visibleCount < filteredProducts.length;
+
+  useEffect(() => {
+    if (!isCatalogPage) return;
+    const node = loadMoreRef.current;
+    if (!node || !hasMore) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((c) => Math.min(filteredProducts.length, c + ITEMS_PER_PAGE));
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isCatalogPage, hasMore, filteredProducts.length]);
+
   const safePage = Math.min(currentPage, totalPages);
-  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-  const currentProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const startIndex = isCatalogPage ? 0 : (safePage - 1) * ITEMS_PER_PAGE;
+  const currentProducts = isCatalogPage
+    ? filteredProducts.slice(0, visibleCount)
+    : filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const sendWhatsApp = useCallback((item: Product) => {
     const url = buildWhatsAppUrl(buildProductOrderMessage(item));
@@ -201,50 +227,62 @@ function ProductsSectionInner({
               ))}
             </div>
 
-            <footer className="mt-20 flex items-center justify-between border-t border-emerald-100 pt-10 dark:border-zinc-800">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
-              >
-                <FiArrowLeft className="shrink-0 transition-transform group-hover:-translate-x-1" aria-hidden />
-                <span>Back</span>
-              </button>
+            {isCatalogPage ? (
+              hasMore ? (
+                <div ref={loadMoreRef} className="mt-16 flex justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600 dark:border-zinc-700 dark:border-t-sky-400" />
+                </div>
+              ) : (
+                <p className="mt-16 text-center text-xs font-bold tracking-widest text-slate-400 uppercase dark:text-zinc-600">
+                  You&apos;ve reached the end
+                </p>
+              )
+            ) : (
+              <footer className="mt-20 flex items-center justify-between border-t border-emerald-100 pt-10 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage === 1}
+                  className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
+                >
+                  <FiArrowLeft className="shrink-0 transition-transform group-hover:-translate-x-1" aria-hidden />
+                  <span>Back</span>
+                </button>
 
-              <div className="flex max-w-[min(100%,280px)] flex-wrap justify-center gap-2 sm:max-w-none sm:gap-4">
-                {visiblePages[0] > 1 ? (
-                  <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
-                ) : null}
-                {visiblePages.map((page) => (
-                  <button
-                    type="button"
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-11 min-w-[2.75rem] rounded-xl px-2 text-xs font-black transition-all ${
-                      page === safePage
-                        ? "scale-110 bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:bg-sky-600 dark:shadow-sky-900/50"
-                        : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-sky-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                {visiblePages[visiblePages.length - 1] < totalPages ? (
-                  <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
-                ) : null}
-              </div>
+                <div className="flex max-w-[min(100%,280px)] flex-wrap justify-center gap-2 sm:max-w-none sm:gap-4">
+                  {visiblePages[0] > 1 ? (
+                    <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
+                  ) : null}
+                  {visiblePages.map((page) => (
+                    <button
+                      type="button"
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-11 min-w-[2.75rem] rounded-xl px-2 text-xs font-black transition-all ${
+                        page === safePage
+                          ? "scale-110 bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:bg-sky-600 dark:shadow-sky-900/50"
+                          : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-sky-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  {visiblePages[visiblePages.length - 1] < totalPages ? (
+                    <span className="flex h-11 items-center px-1 text-xs text-slate-400">…</span>
+                  ) : null}
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
-              >
-                <span>Next</span>
-                <FiArrowRight className="shrink-0 transition-transform group-hover:translate-x-1" aria-hidden />
-              </button>
-            </footer>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage === totalPages}
+                  className="group inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-2 text-xs font-black tracking-widest text-emerald-900 uppercase transition-all disabled:opacity-40 dark:text-zinc-200"
+                >
+                  <span>Next</span>
+                  <FiArrowRight className="shrink-0 transition-transform group-hover:translate-x-1" aria-hidden />
+                </button>
+              </footer>
+            )}
           </>
         )}
       </div>
