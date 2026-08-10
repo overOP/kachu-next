@@ -9,7 +9,9 @@ export const metadata: Metadata = {
 import PageHero from "@/components/layout/PageHero";
 import AboutSection from "@/components/AboutSection";
 import ChooseUs from "@/components/ChooseUs";
+import FaqSection from "@/components/FaqSection";
 import Footer from "@/components/Footer";
+import { CONTACT_FAQS } from "@/lib/data/contact-faqs";
 
 export default function AboutPage() {
   return (
@@ -22,6 +24,7 @@ export default function AboutPage() {
       />
       <AboutSection />
       <ChooseUs />
+      <FaqSection faqs={CONTACT_FAQS} />
       <Footer />
     </SiteShell>
   );

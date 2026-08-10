@@ -8,6 +8,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/lib/hooks/use-auth";
 
 const publicLinks = [
+  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Products", href: "/products" },
   { label: "Contact", href: "/contact" },
