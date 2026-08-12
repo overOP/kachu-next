@@ -1,41 +1,49 @@
 import { cache } from "react";
 import type { Category, Product } from "@/lib/types/api";
 import {
-  fetchCategoriesFromApi,
-  fetchProductByIdFromApi,
-  fetchProductsFromApi,
-} from "@/lib/api/server-fetch";
+  fetchSanityCategories,
+  fetchSanityCategoryBySlug,
+  fetchSanityProductBySlug,
+  fetchSanityProducts,
+} from "@/lib/sanity/queries";
 import { localCategories, localProducts } from "@/lib/data/local-catalog";
 import { filterProductsByCategoryId } from "@/lib/utils/product-display";
 
-// ponytail: backend is optional — any API failure falls back to the bundled local catalog
-// so the storefront still has real products instead of an empty page.
+// ponytail: always show the bundled local catalog alongside whatever Sanity has —
+// Sanity entries win on id collisions, local fills in the rest. A Sanity fetch
+// failure just leaves the local catalog as the whole list.
+function mergeById<T extends { id: string }>(primary: T[], fallback: T[]): T[] {
+  const merged = new Map(fallback.map((item) => [item.id, item]));
+  for (const item of primary) merged.set(item.id, item);
+  return Array.from(merged.values());
+}
+
 export const fetchProducts = cache(async function fetchProducts(
   categoryId?: string
 ): Promise<Product[]> {
-  return fetchProductsFromApi(categoryId).catch(() =>
-    filterProductsByCategoryId(localProducts, categoryId ?? null)
-  );
+  const localFallback = filterProductsByCategoryId(localProducts, categoryId ?? null);
+  const sanityProducts = await fetchSanityProducts(categoryId).catch(() => []);
+  return mergeById(sanityProducts, localFallback);
 });
 
 export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
   Category[]
 > {
-  return fetchCategoriesFromApi().catch(() => localCategories);
+  const sanityCategories = await fetchSanityCategories().catch(() => []);
+  return mergeById(sanityCategories, localCategories);
 });
 
 export const fetchProductById = cache(async function fetchProductById(
   id: string
 ): Promise<Product | undefined> {
-  const product = await fetchProductByIdFromApi(id);
+  const product = await fetchSanityProductBySlug(id).catch(() => undefined);
   return product ?? localProducts.find((p) => p.id === id);
 });
 
 export const fetchCategoryById = cache(async function fetchCategoryById(
   id: string
 ): Promise<Category | undefined> {
-  const { fetchCategoryByIdFromApi } = await import("@/lib/api/server-fetch");
-  const category = await fetchCategoryByIdFromApi(id);
+  const category = await fetchSanityCategoryBySlug(id).catch(() => undefined);
   return category ?? localCategories.find((c) => c.id === id);
 });
 
