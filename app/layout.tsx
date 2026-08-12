@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import StoreProvider from "@/components/providers/StoreProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { getSiteUrl } from "@/lib/config/site-url";
 
 const siteUrl = getSiteUrl();
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="min-h-screen antialiased transition-colors duration-200">
         <ThemeProvider>
           <StoreProvider>{children}</StoreProvider>
+          <WhatsAppFloat />
         </ThemeProvider>
       </body>
     </html>

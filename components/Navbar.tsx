@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { gsap } from "gsap";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/lib/hooks/use-auth";
 
@@ -107,12 +106,6 @@ function NavbarContent() {
   };
 
   useEffect(() => {
-    gsap.fromTo(
-      navRef.current,
-      { y: -80, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: "power3.out", delay: 0.2 }
-    );
-
     const handleScroll = () => {
       if (scrollTicking.current) return;
       scrollTicking.current = true;
