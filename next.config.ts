@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     remotePatterns: [
+      { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "5.imimg.com" },
       { protocol: "https", hostname: "tse1.mm.bing.net" },
       { protocol: "https", hostname: "kraftnaturalcheese.com" },
