@@ -11,7 +11,7 @@ let client: SanityClient | null = null;
  */
 export function getSanityClient(): SanityClient {
   if (!client) {
-    client = createClient({ projectId, dataset, apiVersion, useCdn: true });
+    client = createClient({ projectId, dataset, apiVersion, useCdn: false });
   }
   return client;
 }
