@@ -17,7 +17,7 @@ vi.mock("@/lib/sanity/queries", () => ({
   fetchSanityCategoryBySlug: (...args: unknown[]) => fetchCategoryByIdFromApi(...args),
 }));
 
-// Fixed local catalog so merge-behavior assertions aren't coupled to the real data file.
+// Fixed local catalog so fallback assertions aren't coupled to the real data file.
 const localOnlyProduct = { ...mockProductOtherCategory, id: "local-only" };
 vi.mock("@/lib/data/local-catalog", () => ({
   localProducts: [mockProduct, localOnlyProduct],
@@ -30,23 +30,24 @@ describe("products service", () => {
     vi.resetModules();
   });
 
-  it("fetchProductsForCategoryId merges Sanity results with the local catalog for null/all", async () => {
+  it("fetchProductsForCategoryId returns Sanity results as the source of truth", async () => {
     fetchProductsFromApi.mockResolvedValue([mockProductTwo]);
 
     const { fetchProductsForCategoryId } = await import("@/lib/services/products");
 
     const result = await fetchProductsForCategoryId(null);
-    expect(result.map((p) => p.id).sort()).toEqual(["local-only", "prod-1", "prod-2"]);
+    expect(result.map((p) => p.id)).toEqual(["prod-2"]);
     expect(fetchProductsFromApi).toHaveBeenCalledWith(undefined);
   });
 
-  it("Sanity entries win over local entries on id collision", async () => {
+  it("does not let the local catalog shadow Sanity entries on id collision", async () => {
     const sanityVersion = { ...mockProduct, name: "Sanity Wireless Earbuds" };
     fetchProductsFromApi.mockResolvedValue([sanityVersion]);
 
     const { fetchProductsForCategoryId } = await import("@/lib/services/products");
     const result = await fetchProductsForCategoryId(null);
 
+    expect(result.map((p) => p.id)).toEqual(["prod-1"]);
     expect(result.find((p) => p.id === "prod-1")?.name).toBe("Sanity Wireless Earbuds");
   });
 
@@ -59,15 +60,15 @@ describe("products service", () => {
     expect(result.map((p) => p.id).sort()).toEqual(["local-only", "prod-1"]);
   });
 
-  it("fetchProductsForCategoryId scopes the local catalog by category id too", async () => {
-    fetchProductsFromApi.mockResolvedValue([mockProductTwo]);
+  it("fetchProductsForCategoryId scopes the fallback catalog by category id", async () => {
+    fetchProductsFromApi.mockRejectedValue(new Error("network error"));
 
     const { fetchProductsForCategoryId } = await import("@/lib/services/products");
     const result = await fetchProductsForCategoryId("cat-1");
 
     expect(fetchProductsFromApi).toHaveBeenCalledWith("cat-1");
     // local-only product has categoryId "cat-2", so it's filtered out here.
-    expect(result.map((p) => p.id).sort()).toEqual(["prod-1", "prod-2"]);
+    expect(result.map((p) => p.id).sort()).toEqual(["prod-1"]);
   });
 
   it("fetchRelatedProducts uses category-scoped pool and excludes self", async () => {

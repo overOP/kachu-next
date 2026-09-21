@@ -9,28 +9,30 @@ import {
 import { localCategories, localProducts } from "@/lib/data/local-catalog";
 import { filterProductsByCategoryId } from "@/lib/utils/product-display";
 
-// ponytail: always show the bundled local catalog alongside whatever Sanity has —
-// Sanity entries win on id collisions, local fills in the rest. A Sanity fetch
-// failure just leaves the local catalog as the whole list.
-function mergeById<T extends { id: string }>(primary: T[], fallback: T[]): T[] {
-  const merged = new Map(fallback.map((item) => [item.id, item]));
-  for (const item of primary) merged.set(item.id, item);
-  return Array.from(merged.values());
+// ponytail: Sanity is the source of truth once it returns anything. The bundled
+// local catalog is an OFFLINE FALLBACK only — it used to be merged in as a union,
+// which silently overwrote Sanity docs whenever a slug collided (the "25 in Studio,
+// 19 on the site" bug) and made catalog edits invisible. Merge only when Sanity is
+// empty or unreachable.
+function sanityOrFallback<T>(sanity: T[], fallback: T[]): T[] {
+  return sanity.length > 0 ? sanity : fallback;
 }
+
+const revalidate = 60;
 
 export const fetchProducts = cache(async function fetchProducts(
   categoryId?: string
 ): Promise<Product[]> {
   const localFallback = filterProductsByCategoryId(localProducts, categoryId ?? null);
   const sanityProducts = await fetchSanityProducts(categoryId).catch(() => []);
-  return mergeById(sanityProducts, localFallback);
+  return sanityOrFallback(sanityProducts, localFallback);
 });
 
 export const fetchProductCategories = cache(async function fetchProductCategories(): Promise<
   Category[]
 > {
   const sanityCategories = await fetchSanityCategories().catch(() => []);
-  return mergeById(sanityCategories, localCategories);
+  return sanityOrFallback(sanityCategories, localCategories);
 });
 
 export const fetchProductById = cache(async function fetchProductById(
@@ -69,3 +71,4 @@ export async function fetchRelatedProducts(
 }
 
 export { filterProductsByCategoryId };
+export { revalidate };
